@@ -16,6 +16,7 @@ class CreateMassagesTable extends Migration
         Schema::create('massages', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
+            $table->string('description');
             $table->timestamps();
         });
     }
