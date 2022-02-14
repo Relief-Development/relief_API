@@ -37,6 +37,7 @@ class MassagesController extends Controller
 
             $massage->name = $data->name;
             $massage->description = $data->description;
+            $massage->image = $data->image;
             
 
             try {
