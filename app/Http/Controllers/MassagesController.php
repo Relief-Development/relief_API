@@ -20,7 +20,8 @@ class MassagesController extends Controller
             json_decode($req->getContent(), true),
             [
                 "name" => ["required", "max:50"],
-                "description" => ["required", "max:180"]
+                "description" => ["required", "max:180"],
+                "image" => ["required"]
             ]
         );
 
@@ -46,8 +47,9 @@ class MassagesController extends Controller
                 $respuesta['msg'] = "Se ha producido un error: " . $e->getMessage();
             }
 
-            return response()->json($respuesta);
+           
         }
+        return response()->json($respuesta);
     }
 
 }
