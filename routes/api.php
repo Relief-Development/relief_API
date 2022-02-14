@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UsersController;
+use App\Http\Controllers\MassagesController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,6 +18,7 @@ use App\Http\Controllers\UsersController;
 
 Route::prefix('users')->group(function(){
     Route::put('/registerUser',[UsersController::class,'registerUser']);
+    Route::put('/registerMassage',[MassagesController::class,'registerMassage']);
 });
 
 Route::post('/login',[UsersController::class, 'login']);
