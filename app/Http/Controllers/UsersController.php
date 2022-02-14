@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\Notification;
 use App\Models\User;
 
 class UsersController extends Controller
@@ -18,6 +20,7 @@ class UsersController extends Controller
 
         $username = $data->username;
         $user = User::where('username', '=', $username)->first();
+        $token = $user->api_token;
 
         if ($user) {
             if (Hash::check($data->password, $user->password)) { //Comprobar la contraseña
@@ -25,10 +28,14 @@ class UsersController extends Controller
                 do {
                     $token = Hash::make($user->id . now());
                 } while (User::where('api_token', $token)->first());
-
-                $user->api_token = $token;
-                $user->save();
-                $response['msg'] = "Login correcto. Api token generado: " . $user->api_token;
+                if ($token) {
+                    $user->api_token = $token;
+                    $user->save();
+                    $response['msg'] = "Login correcto. Api token generado: " . $user->api_token;
+                } else {
+                    $response['status'] = 0;
+                    $response['msg'] = "Token no generado";
+                }
             } else {
                 $response['status'] = 0;
                 $response['msg'] = "La contraseña no es correcta";
@@ -78,5 +85,42 @@ class UsersController extends Controller
             }
         }
         return response()->json($response);
+    }
+
+    public function recoverPassword(Request $req){
+   
+         $response = ["status" => 1, "msg" => ""];
+         $data = $req->getContent();
+         $data = json_decode($data);
+ 
+         $email = $req->email;
+         $user = User::where('email', '=', $email)->first();
+ 
+         if ($user) {
+ 
+             $user->api_token = null;
+ 
+             $password = "aAbBcCdDeEfFgGhHiIjJkKlLmMnNñÑoOpPqQrRsStTuUvVwWxXyYzZ0123456789";
+             $passwordCharCount = strlen($password);
+             $passwordLength = 8;
+             $newPassword = "";
+ 
+             for ($i = 0; $i < $passwordLength; $i++) {
+                 $newPassword .= $password[rand(0, $passwordCharCount - 1)];
+             }
+ 
+             //Enviarla por email
+             //Mail::to($user->email)->send(new Notification($newPassword));
+ 
+             //Guardamos al usuario con la nueva contraseña cifrada
+             $user->password = Hash::make($newPassword);
+             $user->save();
+             $response['msg'] = "Nueva contraseña generada. Revisa tu correo";
+         } else {
+             $response['status'] = 0;
+             $response['msg'] = "Usuario no encontrado";
+         }
+ 
+         return response()->json($response);
     }
 }
