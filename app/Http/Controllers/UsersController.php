@@ -87,40 +87,36 @@ class UsersController extends Controller
         return response()->json($response);
     }
 
-    public function recoverPassword(Request $req){
-   
-         $response = ["status" => 1, "msg" => ""];
-         $data = $req->getContent();
-         $data = json_decode($data);
- 
-         $email = $req->email;
-         $user = User::where('email', '=', $email)->first();
- 
-         if ($user) {
- 
-             $user->api_token = null;
- 
-             $password = "aAbBcCdDeEfFgGhHiIjJkKlLmMnNñÑoOpPqQrRsStTuUvVwWxXyYzZ0123456789";
-             $passwordCharCount = strlen($password);
-             $passwordLength = 8;
-             $newPassword = "";
- 
-             for ($i = 0; $i < $passwordLength; $i++) {
-                 $newPassword .= $password[rand(0, $passwordCharCount - 1)];
-             }
- 
-             //Enviarla por email
-             //Mail::to($user->email)->send(new Notification($newPassword));
- 
-             //Guardamos al usuario con la nueva contraseña cifrada
-             $user->password = Hash::make($newPassword);
-             $user->save();
-             $response['msg'] = "Nueva contraseña generada. Revisa tu correo";
-         } else {
-             $response['status'] = 0;
-             $response['msg'] = "Usuario no encontrado";
-         }
- 
-         return response()->json($response);
+    public function recoverPassword(Request $req)
+    {
+        $response = ["status" => 1, "msg" => ""];
+        $data = $req->getContent();
+        $data = json_decode($data);
+
+        $email = $req->email;
+        $user = User::where('email', '=', $data->email)->first();
+
+        if ($user) {
+            $user->api_token = null;
+
+            $password = "aAbBcCdDeEfFgGhHiIjJkKlLmMnNñÑoOpPqQrRsStTuUvVwWxXyYzZ0123456789";
+            $passwordCharCount = strlen($password);
+            $passwordLength = 8;
+            $newPassword = "";
+
+            for ($i = 0; $i < $passwordLength; $i++) {
+                $newPassword .= $password[rand(0, $passwordCharCount - 1)];
+            }
+
+            Mail::to($user->email)->send(new Notification($newPassword));
+            $user->password = Hash::make($newPassword);
+            $user->save();
+            $response['msg'] = "Nueva contraseña generada. Revisa tu correo";
+        } else {
+            $response['status'] = 0;
+            $response['msg'] = "Usuario no encontrado";
+        }
+
+        return response()->json($response);
     }
 }

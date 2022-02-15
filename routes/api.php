@@ -19,6 +19,7 @@ use App\Http\Controllers\MassagesController;
 Route::prefix('users')->group(function(){
     Route::put('/registerUser',[UsersController::class,'registerUser']);
     Route::put('/registerMassage',[MassagesController::class,'registerMassage']);
+    Route::post('/recoverPassword',[UsersController::class,'recoverPassword']);
 });
 
 Route::post('/login',[UsersController::class, 'login']);
