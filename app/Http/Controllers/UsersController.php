@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
 use App\Mail\Notification;
 use App\Models\User;
 
@@ -14,7 +15,7 @@ class UsersController extends Controller
     public function login(Request $req)
     {
 
-        $response = ["status" => 1, "msg" => ""];
+        $response = ["status" => 1, "msg" => "", "token" => "", "profile" => ""];
         $data = $req->getContent();
         $data = json_decode($data);
 
@@ -28,20 +29,28 @@ class UsersController extends Controller
                 do {
                     $token = Hash::make($user->id . now());
                 } while (User::where('api_token', $token)->first());
-                if ($token) {
+                // if ($token) {
                     $user->api_token = $token;
                     $user->save();
-                    $response['msg'] = "Login correcto. Api token generado: " . $user->api_token;
-                } else {
-                    $response['status'] = 0;
-                    $response['msg'] = "Token no generado";
-                }
+
+                    $profile = DB::table('users')
+                        ->select(['name', 'email', 'username', 'role'])//falta dirección
+                        ->where('users.api_token', 'like', $token)
+                        ->get();
+
+                    $response['msg'] = "Login correcto.";
+                    $response['token'] =  $user->api_token;
+                    $response['profile'] = $profile;
+                // } else {
+                //     $response['status'] = 0;
+                //     $response['msg'] = "Token no generado";
+                // }
             } else {
-                $response['status'] = 0;
+                $response['status'] = 3;
                 $response['msg'] = "La contraseña no es correcta";
             }
         } else {
-            $response['status'] = 0;
+            $response['status'] = 2;
             $response['msg'] = "Usuario no encontrado";
         }
 
@@ -63,7 +72,7 @@ class UsersController extends Controller
 
         if ($validator->fails()) {
             $response['status'] = 0;
-            $response['msg'] = $validator->errors();
+            $response['msg'] = "Datos no pasaron el validador";//$validator->errors();
         } else {
             $data = $req->getContent();
             $data = json_decode($data);
@@ -78,7 +87,7 @@ class UsersController extends Controller
                 $user->role = $data->role;
 
                 $user->save();
-                $response['msg'] = "Usuario guardado con id " . $user->id;
+                $response['msg'] = "Usuario registrado correctamente"; //. $user->id;
             } catch (\Exception $e) {
                 $response['status'] = 0;
                 $response['msg'] = "Se ha producido un error: " . $e->getMessage();
@@ -113,7 +122,7 @@ class UsersController extends Controller
             $user->save();
             $response['msg'] = "Nueva contraseña generada. Revisa tu correo";
         } else {
-            $response['status'] = 0;
+            $response['status'] = 2;
             $response['msg'] = "Usuario no encontrado";
         }
 
