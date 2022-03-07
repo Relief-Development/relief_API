@@ -16,15 +16,14 @@ class ValidateAdminPermission
      */
     public function handle(Request $req, Closure $next)
     {
-        $respuesta = ["status" => 1, "msg" => ""];
-        //Comprobar los permisos
-        if($req->user->role =='Admin'){
-            $respuesta['msg'] = "Permisos validados"; 
+        $response = ["status" => 1, "msg" => ""];
+
+        if ($req->user->role == 'Admin') {
             return $next($req);
-            
-        }else{
-            $respuesta['msg'] = "No cuenta con permisos para ejecutar esta funcion";   
+        } else {
+            $response['status'] = 4;
+            $response['msg'] = "No tienes permisos para ejecutar esta función";
         }
-        return response()->json($respuesta);
+        return response()->json($response);
     }
 }

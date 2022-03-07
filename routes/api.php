@@ -20,6 +20,12 @@ Route::prefix('users')->group(function(){
     Route::put('/registerUser',[UsersController::class,'registerUser']);
     Route::put('/registerMassage',[MassagesController::class,'registerMassage']);
     Route::post('/recoverPassword',[UsersController::class,'recoverPassword']);
+    Route::get('/search',[UsersController::class,'search']);
+});
+
+Route::middleware('apitoken')->prefix('users')->group(function(){
+    Route::post('/addFavorites',[UsersController::class, 'addFavorites']);
+    Route::get('/getFavorites',[UsersController::class, 'getFavorites']);
 });
 
 Route::post('/login',[UsersController::class, 'login']);

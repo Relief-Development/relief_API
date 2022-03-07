@@ -18,13 +18,12 @@ class ValidateUserPermission
     public function handle(Request $req, Closure $next)
     {
         $respuesta = ["status" => 1, "msg" => ""];
-        //Comprobar los permisos
-        if($req->user->role =='Usuario' || $req->user->role =='Masajista'){
-            $respuesta['msg'] = "Permisos validados"; 
+
+        if ($req->user->role == 'Usuario' || $req->user->role == 'Masajista') {
             return $next($req);
-            
-        }else{
-            $respuesta['msg'] = "No cuenta con permisos para ejecutar esta funcion";   
+        } else {
+            $response['status'] = 4;
+            $response['msg'] = "No tienes permisos para ejecutar esta función";
         }
         return response()->json($respuesta);
     }
