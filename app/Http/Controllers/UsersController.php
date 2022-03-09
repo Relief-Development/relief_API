@@ -129,7 +129,7 @@ class UsersController extends Controller
         return response()->json($response);
     }
 
-    public function addFavorites(Request $req)
+    public function addFavorites(Request $req) //POR COMPLETAR
     {
         $response = ["status" => 1, "msg" => ""];
         $data = $req->getContent();
@@ -143,9 +143,9 @@ class UsersController extends Controller
                 if ($therapist) {
                     $favorites = Favorite::join('users', 'users.id', '=', 'favorites.user_id')
                         ->join('therapists', 'therapists.id', '=', 'favorites.therapist_id')
-                        ->attach($user->therapists()->$therapist)
+                        ->select('users.name', 'therapists.id')
+                        //->attach($user->favorites()->$therapist)
                         ->get();
-                    //$user->therapists()->attach($therapist); //syncWithoutDetaching or sync
                     $response['status'] = 1;
                     $response['msg'] = $favorites . "Masajista añadido a favoritos";
                 } else {
@@ -160,16 +160,41 @@ class UsersController extends Controller
             $response['status'] = 0;
             $response['msg'] = "Se ha producido un error: " . $e->getMessage();
         }
-
         return response()->json($response);
     }
 
-    public function getFavorites(Request $req)
+    public function removeFavorites(Request $req) //POR COMPLETAR
     {
         $response = ["status" => 1, "msg" => ""];
         $data = $req->getContent();
         $data = json_decode($data);
-        
+
+        $favorite = Favorite::where('id', '=', $req->id)->first();
+
+        try {
+            if ($favorite) {
+                $favorite->select('favorite.id')
+                    ->delete('favorite.id')
+                    ->get();
+                $response['status'] = 1;
+                $response['msg'] = $favorite . "Masajista eliminado de favoritos";
+            } else {
+                $response['status'] = 2;
+                $response['msg'] = "No tienes a este masajista en favoritos";
+            }
+        } catch (\Exception $e) {
+            $response['status'] = 0;
+            $response['msg'] = "Se ha producido un error: " . $e->getMessage();
+        }
+        return response()->json($response);
+    }
+
+    public function getFavorites(Request $req) //POR COMPLETAR
+    {
+        $response = ["status" => 1, "msg" => ""];
+        $data = $req->getContent();
+        $data = json_decode($data);
+
         $user = User::find($req->user->id);
         $favorites = $req->favorites;
 
@@ -191,8 +216,6 @@ class UsersController extends Controller
             $response["status"] = 0;
             $response["msg"] = "Se ha producido un error" . $e->getMessage();
         }
-
-
         return response()->json($response);
     }
 
@@ -202,24 +225,41 @@ class UsersController extends Controller
 
         try {
             if ($req->has('search')) {
-                $massages = Massage::select('id', 'name')
+
+                $services = Service::join('massages', 'massages.id', '=', 'services.massage_id')
+                    ->join('therapists', 'therapists.id', '=', 'services.therapist_id')
                     ->where('massages.name', 'like', '%' . $req->input('search') . '%')
+                    ->orWhere('therapists.name', 'like', '%' . $req->input('search') . '%')
+                    ->select('therapists.name')
+                    ->orderBy('therapists.name', 'ASC')
                     ->get();
                 $response['status'] = 1;
-                $response['massages'] = $massages;
-
-                // $services = Service::join('massages', 'massages.id', '=', 'services.massage_id')
-                //     ->join('therapists', 'therapists.id', '=', 'services.therapist_id')
-                //     ->where('massages.name', 'like', '%' . $req->input('search') . '%')
-                //     ->select('massages.name', 'therapists.username')
-                //     ->orderBy('therapists.username', 'ASC')
-                //     ->get();
-                // $response['status'] = 1;
-                // $response['services'] = $services;
+                $response['services'] = $services;
             }
         } catch (\Exception $e) {
             $response['status'] = 0;
             $response['msg'] = "Se ha producido un error: " . $e->getMessage();
+        }
+        return response()->json($response);
+    }
+
+    public function getTherapistInMap(Request $req)
+    {
+        $response = ["status" => 1, "msg" => ""];
+
+        try {
+            if ($req->has('search')) {
+                $therapists = DB::table('therapists')
+                    ->where('therapists.name', 'like', '%' . $req->input('search') . '%')
+                    ->select('therapists.name', 'therapists.location')
+                    ->get();
+                $response["status"] = 1;
+                $response['msg'] = "Masajistas encontrados";
+                $response['therapists'] = $therapists;
+            }
+        } catch (\Exception $e) {
+            $response["status"] = 0;
+            $response["msg"] = "Se ha producido un error" . $e->getMessage();
         }
         return response()->json($response);
     }
