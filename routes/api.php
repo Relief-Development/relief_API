@@ -21,11 +21,13 @@ Route::prefix('users')->group(function(){
     Route::put('/registerMassage',[MassagesController::class,'registerMassage']);
     Route::post('/recoverPassword',[UsersController::class,'recoverPassword']);
     Route::get('/search',[UsersController::class,'search']);
+    Route::get('/getTherapistInMap',[UsersController::class, 'getTherapistInMap']);
 });
 
 Route::middleware('apitoken')->prefix('users')->group(function(){
     Route::post('/addFavorites',[UsersController::class, 'addFavorites']);
     Route::get('/getFavorites',[UsersController::class, 'getFavorites']);
+    Route::post('/removeFavorites',[UsersController::class, 'removeFavorites']);    
 });
 
 Route::post('/login',[UsersController::class, 'login']);
