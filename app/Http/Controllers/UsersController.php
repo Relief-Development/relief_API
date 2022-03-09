@@ -13,6 +13,7 @@ use App\Models\Favorite;
 use App\Models\Massage;
 use App\Models\Therapist;
 use App\Models\Service;
+use Illuminate\Support\Facades\Storage;
 
 class UsersController extends Controller
 {
@@ -40,10 +41,23 @@ class UsersController extends Controller
                     ->where('users.api_token', 'like', $token)
                     ->get();
 
+                if($user->image != "" && Storage::exists($user->image)){    
+                $image = base64_encode(Storage::get($user->image)); 
+                $type = Storage::mimeType($user->image);
+                }
+
+                //agregar foto decodificada si la imagen y el tipo son enviados
+                //if (isset($data->image) && $data->image && isset($data->imageType) &&  $data->imageType) {
+                   // Storage::put($user->username . '_photo.' . $data->imageType, base64_decode($data->image));
+                //}
+
                 $response['status'] = 1;
                 $response['msg'] = "Login correcto.";
                 $response['token'] =  $user->api_token;
                 $response['profile'] = $profile;
+                $response['image'] = $image;
+                $response['type'] = $type;
+
             } else {
                 $response['status'] = 3;
                 $response['msg'] = "La contraseña no es correcta";
@@ -84,6 +98,12 @@ class UsersController extends Controller
                 $user->username = $data->username;
                 $user->password = Hash::make($data->password);
                 $user->role = $data->role;
+
+                //agregar foto decodificada si la imagen y el tipo son enviados
+                if (isset($data->image) && $data->image && isset($data->imageType) &&  $data->imageType) {
+                    Storage::put($user->username . '_photo.' . $data->imageType, base64_decode($data->image));
+                    $user->image = $user->username . '_photo.' . $data->imageType;
+                }
 
                 $user->save();
                 $response['status'] = 1;
@@ -169,7 +189,7 @@ class UsersController extends Controller
         $response = ["status" => 1, "msg" => ""];
         $data = $req->getContent();
         $data = json_decode($data);
-        
+
         $user = User::find($req->user->id);
         $favorites = $req->favorites;
 
