@@ -20,6 +20,10 @@ class User extends Authenticatable
 
     protected $table = 'users';
 
+    public function favoriteTherapists(){
+        return $this->belongsToMany(Therapist::class,'favorites');
+    }
+
     protected $fillable = [
         'name',
         'email',
