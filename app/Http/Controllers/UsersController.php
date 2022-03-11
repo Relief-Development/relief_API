@@ -307,11 +307,11 @@ class UsersController extends Controller
 
         try {
 
-            $requestedUserId = User::where('api_token', $requestedToken)->first();
+            $requestedUser = User::where('api_token', $requestedToken)->first();
 
             if (isset($data->email)) {
 
-                if ($requestedUserId->email == $data->email) {
+                if ($requestedUser->email == $data->email) {
 
                     $validator = Validator::make(
                         json_decode($req->getContent(), true),
@@ -359,25 +359,36 @@ class UsersController extends Controller
 
                 //Almacenar la nueva informacion del usuario
                 if (isset($data->name)  && $data->name) {
-                    $requestedUserId->name = $data->name;
+                    $requestedUser->name = $data->name;
                 }
                 if (isset($data->email)  && $data->email) {
-                    $requestedUserId->email = $data->email;
+                    $requestedUser->email = $data->email;
                 }
                 if (isset($data->password)  && $data->password) {
-                    $requestedUserId->password = Hash::make($data->password);
+                    $requestedUser->password = Hash::make($data->password);
                 }
                 if (isset($data->lat)  && $data->lat) {
-                    $requestedUserId->lat = $data->lat;
+                    $requestedUser->lat = $data->lat;
                 }
                 if (isset($data->long)  && $data->long) {
-                    $requestedUserId->long = $data->long;
+                    $requestedUser->long = $data->long;
                 }
                 if (isset($data->address)  && $data->address) {
-                    $requestedUserId->address = $data->address;
+                    $requestedUser->address = $data->address;
                 }
+                if (isset($data->image) && $data->image) {
 
-                $requestedUserId->save();
+                    if (Storage::exists($requestedUser->username . '_photo')){
+                        //BORRAMOS LA IMAGEN EXISTENTE
+                        Storage::delete($requestedUser->username . '_photo');
+                    }
+                    Storage::put($requestedUser->username . '_photo', base64_decode($data->image));
+                    $requestedUser->image = $requestedUser->username . '_photo';
+                    
+                }
+                
+
+                $requestedUser->save();
                 $respuesta['status'] = 1;
                 $respuesta['msg'] = "Se han actualizado los datos del usuario.";
 
