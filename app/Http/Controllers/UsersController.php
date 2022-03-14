@@ -144,7 +144,9 @@ class UsersController extends Controller
             }
 
             Mail::to($user->email)->send(new Notification($newPassword));
+
             $user->password = Hash::make($newPassword);
+
             $user->save();
             $response['status'] = 1;
             $response['msg'] = "Nueva contraseña generada. Revisa tu correo";
@@ -224,8 +226,7 @@ class UsersController extends Controller
         $response = ['status' => 1, "msg" => ""];
 
         try {
-            if (!$req->has('search') == "") {
-
+            if ($req->has('search')) {
                 $services = Service::join('massages', 'massages.id', '=', 'services.massage_id')
                     ->join('therapists', 'therapists.id', '=', 'services.therapist_id')
                     ->where('massages.name', 'like', '%' . $req->input('search') . '%')
@@ -238,7 +239,7 @@ class UsersController extends Controller
                 $response['msg'] = "Listado de masajistas:";
                 $response['services'] = $services;
                 
-            } else if($req->has('search') == "") {
+            } else if($req->has('search') === "") {
                 // $services = Service::select('therapists.name')
                 // ->orderBy('therapists.name', 'ASC')
                 // ->get();

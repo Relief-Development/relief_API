@@ -6,8 +6,8 @@
         <title>Recuperación de contraseña</title>
     </head>
     <body>
-        <p>Recibes este email porque se solicito el reestablecimiento de contraseña para tu cuenta, si no es así, ignora este correo.</p>
-        <p>Tu nueva contraseña es: {{$password}}</p>
+        <p>Solicitud de nueva contraseña. Tu nueva contraseña es: {{$password}} </p>
+        <p>Si no lo has solicitado, ignora este correo. </p>
     </body>
 </html>
 
