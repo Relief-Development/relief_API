@@ -13,8 +13,7 @@ class MassagesController extends Controller
     //
     public function registerMassage(Request $req)
     {
-
-        $respuesta = ['status' => 1, 'msg' => ''];
+        $response = ['status' => 1, 'msg' => ''];
 
         $validator = Validator::make(
             json_decode($req->getContent(), true),
@@ -26,8 +25,8 @@ class MassagesController extends Controller
         );
 
         if ($validator->fails()) {
-            $respuesta['status'] = 0;
-            $respuesta['msg'] = $validator->errors();
+            $response['status'] = 0;
+            $response['msg'] = $validator->errors();
         } else {
             //Generar el nuevo usuario
 
@@ -42,15 +41,15 @@ class MassagesController extends Controller
 
             try {
                 $massage->save();
-                $respuesta['msg'] = "Masaje guardado con id " . $massage->id;
+                $response['msg'] = "Masaje guardado con id " . $massage->id;
             } catch (\Exception $e) {
-                $respuesta['status'] = 0;
-                $respuesta['msg'] = "Se ha producido un error: " . $e->getMessage();
+                $response['status'] = 0;
+                $response['msg'] = "Se ha producido un error: " . $e->getMessage();
             }
 
            
         }
-        return response()->json($respuesta);
+        return response()->json($response);
     }
 
 }
