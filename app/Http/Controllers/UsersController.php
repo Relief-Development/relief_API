@@ -23,8 +23,8 @@ class UsersController extends Controller
         $data = $req->getContent();
         $data = json_decode($data);
 
-        $username = $data->username;
-        $user = User::where('username', '=', $username)->first();
+        $email = $data->email;
+        $user = User::where('email', '=', $email)->first();
         $token = $user->api_token;
 
         if ($user) {
@@ -62,11 +62,11 @@ class UsersController extends Controller
                 //$response['type'] = $type;
             } else {
                 $response['status'] = 3;
-                $response['msg'] = "Los datos no son válidos"; //La contraseña no es correcta
+                $response['msg'] = "La contraseña no es correcta"; //La contraseña no es correcta
             }
         } else {
             $response['status'] = 2;
-            $response['msg'] = "Los datos no son válidos"; //Usuario no encontrado
+            $response['msg'] = "Usuario no encontrado"; //Usuario no encontrado
         }
 
         return response()->json($response);
@@ -232,12 +232,38 @@ class UsersController extends Controller
                     ->join('therapists', 'therapists.id', '=', 'services.therapist_id')
                     ->where('massages.name', 'like', '%' . $req->input('search') . '%')
                     ->orWhere('therapists.name', 'like', '%' . $req->input('search') . '%')
+                    ->groupBy('therapists.name')
                     ->select('therapists.name')
                     ->orderBy('therapists.name', 'ASC')
                     ->get();
                 $response['status'] = 1;
                 $response['services'] = $services;
+            } else if($req->has('search') == "") {
+                $services = Service::get();
+                $response['status'] = 1;
+                $response['services'] = $services;
             }
+        } catch (\Exception $e) {
+            $response['status'] = 0;
+            $response['msg'] = "Se ha producido un error: " . $e->getMessage();
+        }
+        return response()->json($response);
+    }
+
+    public function listMassages(Request $req) {
+
+        $response = ["status" => 1, "msg" => ""];
+
+        try {
+         
+                $user = DB::table('users')
+                    ->where('position', 'like', 'Empleado')
+                    ->orwhere('position', 'like', 'RRHH')
+                    ->select('name', 'position', 'salary', 'biography')
+                    ->get();
+                $response['status'] = 1;
+                $response['empleados'] = $user;
+            
         } catch (\Exception $e) {
             $response['status'] = 0;
             $response['msg'] = "Se ha producido un error: " . $e->getMessage();
@@ -268,7 +294,7 @@ class UsersController extends Controller
 
     function editProfile(Request $req)
     {
-        $respuesta = ["status" => 1, "msg" => ""];
+        $response = ["status" => 1, "msg" => ""];
 
         $data = $req->getContent();
         $data = json_decode($data);
@@ -325,9 +351,9 @@ class UsersController extends Controller
 
             if ($validator->fails()) {
 
-                $respuesta['status'] = 0;
-                $respuesta['msg'] = "El correo ingresado ya se encuentra registrado, prueba con otro.";
-                //$respuesta['msg'] = $validator->errors();
+                $response['status'] = 0;
+                $response['msg'] = "El correo ingresado ya se encuentra registrado, prueba con otro.";
+                //$response['msg'] = $validator->errors();
             } else {
 
                 //Almacenar la nueva informacion del usuario
@@ -361,18 +387,18 @@ class UsersController extends Controller
 
 
                 $requestedUser->save();
-                $respuesta['status'] = 1;
-                $respuesta['msg'] = "Se han actualizado los datos del usuario.";
+                $response['status'] = 1;
+                $response['msg'] = "Se han actualizado los datos del usuario.";
 
-                return response()->json($respuesta);
+                return response()->json($response);
             }
-            //$respuesta['msg'] = "Revise los parametros e intente nuevamente";
+            //$response['msg'] = "Revise los parametros e intente nuevamente";
         } catch (\Exception $e) {
-            $respuesta['status'] = 0;
-            $respuesta['msg'] = "Se ha producido un error: " . $e->getMessage();
+            $response['status'] = 0;
+            $response['msg'] = "Se ha producido un error: " . $e->getMessage();
         }
 
-        $respuesta['msg'] = "Se ha producido un error: " . $e->getMessage();
-        return response()->json($respuesta);
+        $response['msg'] = "Se ha producido un error: " . $e->getMessage();
+        return response()->json($response);
     }
 }
