@@ -125,15 +125,13 @@ class UsersController extends Controller
 
     public function recoverPassword(Request $req)
     {
-        //Obtenemos el email
-        $datos = $req->getContent();
-        $datos = json_decode($datos);
+        $response = ["status" => 1, "msg" => ""];
+        $data = $req->getContent();
+        $data = json_decode($data);
 
-        //Buscar el email
-        $email = $datos->email;
-        $respuesta = ["status" => 1, "msg" => ""];
-        //Validacion
-        $user = User::where('email',$email)->first();
+        $email = $data->email;
+        
+        $user = User::where('email', $email)->first();
         try{
             if($user){
 
@@ -149,11 +147,12 @@ class UsersController extends Controller
                 $user->password = Hash::make($newPassword);
                 $user->save();
                 Mail::to($user->email)->send(new Notification($newPassword));  
-                $respuesta['msg'] = "Se ha enviado su nueva contraseña";
+                $respuesta['status'] = 1;
+                $response['msg'] = "Se ha enviado su nueva contraseña. Por favor, revise su correo.";
                 
             }else{
-                
-                $respuesta['msg'] = "Ese usuario no esta registrado";
+                $respuesta['status'] = 2;
+                $response['msg'] = "Usuario no encontrado";
             }
             
         }catch(\Exception $e){
