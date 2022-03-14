@@ -17,8 +17,12 @@ class VerifyApiToken
      */
     public function handle(Request $req, Closure $next)
     {
-        if (isset($req->api_token)) {
-            $user = User::where('api_token', $req->api_token)->first();
+        $response = ["status" => 1, "msg" => ""];
+        $data = $req->getContent();
+        $data = json_decode($data);
+
+        if (isset($data->api_token)) {
+            $user = User::where('api_token', $data->api_token)->first();
             if ($user) {
                 $response["msg"] = "Api token válido";
                 $req->user = $user;

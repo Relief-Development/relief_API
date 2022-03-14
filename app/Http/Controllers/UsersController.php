@@ -158,94 +158,25 @@ class UsersController extends Controller
         return response()->json($response);
     }
 
-    public function addFavorites(Request $req)
-    {
-        $response = ["status" => 1, "msg" => ""];
-        $data = $req->getContent();
-        $data = json_decode($data);
-
-        $user = User::where('api_token', $req->api_token)->first();
-        $therapist = Therapist::find($data->therapist_id);
- 
-        try {
-            if ($user) {
-                if ($therapist) {
-                    $user->favoriteTherapists()->syncWithoutDetaching($therapist); //no se añade el mismo masajista dos veces
-                    $response['status'] = 1;
-                    $response['msg'] = "Masajista añadido a favoritos";
-                } else {
-                    $response['status'] = 6;
-                    $response['msg'] = "Masajista no encontrado";
-                }
-            } else {
-                $response['status'] = 2;
-                $response['msg'] = "Usuario no encontrado";
-            }
-        } catch (\Exception $e) {
-            $response['status'] = 0;
-            $response['msg'] = "Se ha producido un error: " . $e->getMessage();
-        }
-        return response()->json($response);
-    }
-
-    public function removeFavorites(Request $req) //POR COMPLETAR (borra todos los favs)
-    {
-        $response = ["status" => 1, "msg" => "", "token" => ""];
-        $data = $req->getContent();
-        $data = json_decode($data);
-
-        $user = User::where('api_token', $req->api_token)->first();
-        $favorite = Favorite::where('id', $data->favorite_id)->first();
-        //$favorite = Favorite::find($data->favorite_id);
-        //$favorite = Favorite::where('id', $favorite_id)->first(); //si lo meto en la ruta
-        print($favorite);
-        try {
-            if ($user) {
-                if (!$user->favoriteTherapists->isEmpty()) {
-                    // foreach ($user->favoriteTherapists as $therapist) { //lo detacho para no eliminar también el masajista
-                    //     $user->favoriteTherapists()->detach($therapist);
-                    // }
-
-                    // $favorite->delete();
-                    $response['msg'] = $favorite;
-                    // $response['status'] = 1;
-                    // $response['msg'] = "Masajista eliminado de favoritos";
-                }else {
-                    $response['status'] = 8;
-                    $response['msg'] = "Favorito no encontrado";
-                }
-            } else {
-                $response["status"] = 2;
-                $response['msg'] = "Usuario no encontrado";
-            }
-        } catch (\Exception $e) {
-            $response['status'] = 0;
-            $response['msg'] = "Se ha producido un error: " . $e->getMessage();
-        }
-        return response()->json($response);
-    }
-
     public function addRemoveFavorites(Request $req)
     {
-
-
         $response = ["status" => 1, "msg" => ""];
         $data = $req->getContent();
         $data = json_decode($data);
 
         $user = User::where('api_token', $data->api_token)->first();
         $therapist = Therapist::find($data->therapist_id);
-        $favorite = Favorite::where('user_id', 'like', $user->id && 'therapist_id', 'like', $therapist->id);
+        $favorite = Favorite::where('user_id', '=', $user->id)->where('therapist_id', '=', $therapist->id)->first();
 
         if ($favorite) { //Función para eliminar favorito
 
-            $favoriteToDelete = DB::table('favorites')
-                    ->where('favorites.id', '==', $favorite->id)->delete();
+            Favorite::where('id', $favorite->id)->delete();
+            $response['status'] = 1;
+            $response['msg'] = "Masajista eliminado de favoritos";
 
         } else { //Función para crear favorito
-            
-            try {
 
+            try {
                 $newFavorite = new Favorite();
 
                 $newFavorite->user_id = $data->user_id;
@@ -253,7 +184,6 @@ class UsersController extends Controller
                 $newFavorite->save();
                 $response['status'] = 1;
                 $response['msg'] = "Masajista añadido a favoritos";
-                
             } catch (\Exception $e) {
                 $response['status'] = 0;
                 $response['msg'] = "Se ha producido un error: " . $e->getMessage();
@@ -265,8 +195,10 @@ class UsersController extends Controller
     public function getFavorites(Request $req)
     {
         $response = ["status" => 1, "msg" => ""];
+        $data = $req->getContent();
+        $data = json_decode($data);
 
-        $user = User::find($req->user->id);
+        $user = User::where('api_token', $data->api_token)->first();
 
         try {
             if ($user) {
