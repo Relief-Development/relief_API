@@ -106,8 +106,8 @@ class UsersController extends Controller
                 //}
 
                 if (isset($data->image) && $data->image) {
-                    Storage::put($user->email . '_photo', base64_decode($data->image));
-                    $user->image = $user->email . '_photo';
+                    Storage::put($user->email.'_photo', base64_decode($data->image));
+                    $user->image = $user->email.'_photo';
                     // Storage::put($user->username . '_photo.' . $data->imageType, base64_decode($data->image));
                     // $user->image = $user->username . '_photo.' . $data->imageType;
                 }
@@ -380,12 +380,12 @@ class UsersController extends Controller
                 }
                 if (isset($data->image) && $data->image) {
 
-                    if (Storage::exists($requestedUser->email . '_photo')) {
+                    if (Storage::exists($requestedUser->email.'_photo')) {
                         //BORRAMOS LA IMAGEN EXISTENTE
-                        Storage::delete($requestedUser->email . '_photo');
+                        Storage::delete($requestedUser->email.'_photo');
                     }
-                    Storage::put($requestedUser->email . '_photo', base64_decode($data->image));
-                    $requestedUser->image = $requestedUser->email . '_photo';
+                    Storage::put($requestedUser->email.'_photo', base64_decode($data->image));
+                    $requestedUser->image = $requestedUser->email.'_photo';
                 }
 
 
