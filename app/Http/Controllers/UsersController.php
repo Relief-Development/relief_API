@@ -249,7 +249,7 @@ class UsersController extends Controller
         return response()->json($response);
     }
 
-    public function listMassages(Request $req) //POR COMPLETAR
+    public function listMassages(Request $req) //Ver
     {
         $response = ["status" => 1, "msg" => ""];
 
@@ -260,7 +260,32 @@ class UsersController extends Controller
             $response['status'] = 1;
             $response['msg'] = "Listado de masajes:";
             $response['massages'] = $massages;
+        } catch (\Exception $e) {
+            $response['status'] = 0;
+            $response['msg'] = "Se ha producido un error: " . $e->getMessage();
+        }
+        return response()->json($response);
+    }
 
+    public function detailMassage(Request $req) //Ver
+    {
+        $response = ["status" => 1, "msg" => ""];
+        $data = $req->getContent();
+        $data = json_decode($data);
+
+        try {
+            $requestMassage = Massage::where('id', $data->massage_id)->first();
+            if ($requestMassage) {
+                $massage = DB::table('massages')
+                    ->where('massages.id', '=', $requestMassage->id)
+                    ->select('massages.name', 'massages.description', 'massages.image')
+                    ->get();
+                $response['status'] = 1;
+                $response['massage'] = $massage;
+            } else {
+                $response["status"] = 6;
+                $response['msg'] = "Masaje no encontrado";
+            }
         } catch (\Exception $e) {
             $response['status'] = 0;
             $response['msg'] = "Se ha producido un error: " . $e->getMessage();
