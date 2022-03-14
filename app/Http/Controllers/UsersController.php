@@ -80,7 +80,6 @@ class UsersController extends Controller
         $validator = Validator::make(json_decode($req->getContent(), true), [
             'name' => 'required|max:50',
             'email' => 'required|email|unique:App\Models\User,email|max:70',
-            'username' => 'required|unique:App\Models\User,username|max:50',
             'password' => 'required|regex:/(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{6,}/',
             'role' => 'required|in:Usuario,Masajista,Admin'
         ]);
@@ -97,7 +96,6 @@ class UsersController extends Controller
 
                 $user->name = $data->name;
                 $user->email = $data->email;
-                $user->username = $data->username;
                 $user->password = Hash::make($data->password);
                 $user->role = $data->role;
 
@@ -108,8 +106,8 @@ class UsersController extends Controller
                 //}
 
                 if (isset($data->image) && $data->image) {
-                    Storage::put($user->username . '_photo', base64_decode($data->image));
-                    $user->image = $user->username . '_photo';
+                    Storage::put($user->email . '_photo', base64_decode($data->image));
+                    $user->image = $user->email . '_photo';
                     // Storage::put($user->username . '_photo.' . $data->imageType, base64_decode($data->image));
                     // $user->image = $user->username . '_photo.' . $data->imageType;
                 }
@@ -226,7 +224,7 @@ class UsersController extends Controller
         $response = ['status' => 1, "msg" => ""];
 
         try {
-            if ($req->has('search')) {
+            if (!$req->has('search') == "") {
 
                 $services = Service::join('massages', 'massages.id', '=', 'services.massage_id')
                     ->join('therapists', 'therapists.id', '=', 'services.therapist_id')
@@ -237,11 +235,16 @@ class UsersController extends Controller
                     ->orderBy('therapists.name', 'ASC')
                     ->get();
                 $response['status'] = 1;
+                $response['msg'] = "Listado de masajistas:";
                 $response['services'] = $services;
+                
             } else if($req->has('search') == "") {
-                $services = Service::get();
-                $response['status'] = 1;
-                $response['services'] = $services;
+                // $services = Service::select('therapists.name')
+                // ->orderBy('therapists.name', 'ASC')
+                // ->get();
+                // $response['status'] = 1;
+                $response['msg'] = "Hola pedro ";
+                //$response['services'] = $services;
             }
         } catch (\Exception $e) {
             $response['status'] = 0;
@@ -377,12 +380,12 @@ class UsersController extends Controller
                 }
                 if (isset($data->image) && $data->image) {
 
-                    if (Storage::exists($requestedUser->username . '_photo')) {
+                    if (Storage::exists($requestedUser->email . '_photo')) {
                         //BORRAMOS LA IMAGEN EXISTENTE
-                        Storage::delete($requestedUser->username . '_photo');
+                        Storage::delete($requestedUser->email . '_photo');
                     }
-                    Storage::put($requestedUser->username . '_photo', base64_decode($data->image));
-                    $requestedUser->image = $requestedUser->username . '_photo';
+                    Storage::put($requestedUser->email . '_photo', base64_decode($data->image));
+                    $requestedUser->image = $requestedUser->email . '_photo';
                 }
 
 
