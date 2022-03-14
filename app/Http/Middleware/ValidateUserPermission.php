@@ -17,7 +17,7 @@ class ValidateUserPermission
      */
     public function handle(Request $req, Closure $next)
     {
-        $respuesta = ["status" => 1, "msg" => ""];
+        $response = ["status" => 1, "msg" => ""];
 
         if ($req->user->role == 'Usuario' || $req->user->role == 'Masajista') {
             return $next($req);
@@ -25,6 +25,6 @@ class ValidateUserPermission
             $response['status'] = 4;
             $response['msg'] = "No tienes permisos para ejecutar esta función";
         }
-        return response()->json($respuesta);
+        return response()->json($response);
     }
 }

@@ -130,37 +130,35 @@ class UsersController extends Controller
         $data = json_decode($data);
 
         $email = $data->email;
-        
+
         $user = User::where('email', $email)->first();
-        try{
-            if($user){
+        try {
+            if ($user) {
 
                 $user->api_token = null;
-                
+
                 //Generamos nueva contraseña aleatoria
                 $characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890abcdefghijklmnopqrstuvwxyz";
                 $characterLength = strlen($characters);
                 $newPassword = '';
-                for ($i=0; $i < 8; $i++) { 
+                for ($i = 0; $i < 8; $i++) {
                     $newPassword .= $characters[rand(0, $characterLength - 1)];
-                } 
+                }
                 $user->password = Hash::make($newPassword);
                 $user->save();
-                Mail::to($user->email)->send(new Notification($newPassword));  
-                $respuesta['status'] = 1;
+                Mail::to($user->email)->send(new Notification($newPassword));
+                $response['status'] = 1;
                 $response['msg'] = "Se ha enviado su nueva contraseña. Por favor, revise su correo.";
-                
-            }else{
-                $respuesta['status'] = 2;
+            } else {
+                $response['status'] = 2;
                 $response['msg'] = "Usuario no encontrado";
             }
-            
-        }catch(\Exception $e){
-            $respuesta['status'] = 0;
-            $respuesta['msg'] = "Se ha producido un error: ".$e->getMessage();
+        } catch (\Exception $e) {
+            $response['status'] = 0;
+            $response['msg'] = "Se ha producido un error: " . $e->getMessage();
         }
 
-        return response()->json($respuesta);
+        return response()->json($response);
     }
 
     public function addRemoveFavorites(Request $req)
@@ -178,6 +176,7 @@ class UsersController extends Controller
             Favorite::where('id', $favorite->id)->delete();
             $response['status'] = 1;
             $response['msg'] = "Masajista eliminado de favoritos";
+
         } else { //Función para crear favorito
 
             try {
@@ -250,19 +249,18 @@ class UsersController extends Controller
         return response()->json($response);
     }
 
-    public function listMassages(Request $req)
+    public function listMassages(Request $req) //POR COMPLETAR
     {
-
         $response = ["status" => 1, "msg" => ""];
 
         try {
             $massages = DB::table('massages')
-                ->where('massages.name', 'like', 'name')
                 ->select('massages.name')
                 ->get();
             $response['status'] = 1;
-            $response['msg'] = "Listado de masages:";
-            $response['empleados'] = $massages;
+            $response['msg'] = "Listado de masajes:";
+            $response['massages'] = $massages;
+
         } catch (\Exception $e) {
             $response['status'] = 0;
             $response['msg'] = "Se ha producido un error: " . $e->getMessage();
