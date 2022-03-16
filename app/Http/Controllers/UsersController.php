@@ -29,12 +29,13 @@ class UsersController extends Controller
 
         if ($user) {
             if (Hash::check($data->password, $user->password)) {
-
-                do {
-                    $token = Hash::make($user->id . now());
-                } while (User::where('api_token', $token)->first());
-                $user->api_token = $token;
-                $user->save();
+                if (!isset($user->api_token)) {
+                    do {
+                        $token = Hash::make($user->id . now());
+                    } while (User::where('api_token', $token)->first());
+                    $user->api_token = $token;
+                    $user->save();
+                }
 
                 // $profile = DB::table('users')
                 //     ->select(['name', 'email', 'username', 'role', 'created_at']) //falta dirección
@@ -176,7 +177,6 @@ class UsersController extends Controller
             Favorite::where('id', $favorite->id)->delete();
             $response['status'] = 1;
             $response['msg'] = "Masajista eliminado de favoritos";
-
         } else { //Función para crear favorito
 
             try {
@@ -293,20 +293,38 @@ class UsersController extends Controller
         return response()->json($response);
     }
 
-    public function getTherapistInMap(Request $req) //Por completar con localización
+    public function searchTherapistInMap(Request $req) 
     {
         $response = ["status" => 1, "msg" => ""];
 
         try {
             if ($req->has('search')) {
-                $therapists = DB::table('therapists')
-                    ->where('therapists.name', 'like', '%' . $req->input('search') . '%')
-                    ->select('therapists.name', 'therapists.location')
+                $profile = User::where('users.role', '=', 'Masajista')
+                    ->where('users.name', 'like', '%' . $req->input('search') . '%')
+                    ->select('users.name', 'users.lat', 'users.long')
                     ->get();
                 $response["status"] = 1;
                 $response['msg'] = "Masajistas encontrados";
-                $response['therapists'] = $therapists;
+                $response['profile'] = $profile;
             }
+        } catch (\Exception $e) {
+            $response["status"] = 0;
+            $response["msg"] = "Se ha producido un error" . $e->getMessage();
+        }
+        return response()->json($response);
+    }
+
+    public function getTherapistInMap() 
+    {
+        $response = ["status" => 1, "msg" => ""];
+
+        try {
+            $profile = User::where('users.role', '=', 'Masajista')
+                ->select('users.name', 'users.lat', 'users.long')
+                ->get();
+            $response["status"] = 1;
+            $response['msg'] = "Masajistas encontrados";
+            $response['profile'] = $profile;
         } catch (\Exception $e) {
             $response["status"] = 0;
             $response["msg"] = "Se ha producido un error" . $e->getMessage();
