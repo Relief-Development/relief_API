@@ -21,6 +21,9 @@ Route::prefix('users')->group(function(){
     Route::put('/registerMassage',[MassagesController::class,'registerMassage']);
     Route::post('/recoverPassword',[UsersController::class,'recoverPassword']);
     Route::get('/search',[UsersController::class,'search']);
+    Route::get('/listMassages',[UsersController::class,'listMassages']);
+    Route::get('/detailMassage',[UsersController::class,'detailMassage']);
+    Route::get('/searchTherapistInMap',[UsersController::class, 'searchTherapistInMap']);
     Route::get('/getTherapistInMap',[UsersController::class, 'getTherapistInMap']);
 });
 

@@ -29,12 +29,13 @@ class UsersController extends Controller
 
         if ($user) {
             if (Hash::check($data->password, $user->password)) {
-
-                do {
-                    $token = Hash::make($user->id . now());
-                } while (User::where('api_token', $token)->first());
-                $user->api_token = $token;
-                $user->save();
+                if (!isset($user->api_token)) {
+                    do {
+                        $token = Hash::make($user->id . now());
+                    } while (User::where('api_token', $token)->first());
+                    $user->api_token = $token;
+                    $user->save();
+                }
 
                 // $profile = DB::table('users')
                 //     ->select(['name', 'email', 'username', 'role', 'created_at']) //falta dirección
@@ -80,7 +81,6 @@ class UsersController extends Controller
         $validator = Validator::make(json_decode($req->getContent(), true), [
             'name' => 'required|max:50',
             'email' => 'required|email|unique:App\Models\User,email|max:70',
-            'username' => 'required|unique:App\Models\User,username|max:50',
             'password' => 'required|regex:/(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{6,}/',
             'role' => 'required|in:Usuario,Masajista,Admin'
         ]);
@@ -97,7 +97,6 @@ class UsersController extends Controller
 
                 $user->name = $data->name;
                 $user->email = $data->email;
-                $user->username = $data->username;
                 $user->password = Hash::make($data->password);
                 $user->role = $data->role;
 
@@ -108,8 +107,8 @@ class UsersController extends Controller
                 //}
 
                 if (isset($data->image) && $data->image) {
-                    Storage::put($user->username . '_photo', base64_decode($data->image));
-                    $user->image = $user->username . '_photo';
+                    Storage::put($user->email . '_photo', base64_decode($data->image));
+                    $user->image = $user->email . '_photo';
                     // Storage::put($user->username . '_photo.' . $data->imageType, base64_decode($data->image));
                     // $user->image = $user->username . '_photo.' . $data->imageType;
                 }
@@ -131,28 +130,33 @@ class UsersController extends Controller
         $data = $req->getContent();
         $data = json_decode($data);
 
-        $user = User::where('email', '=', $data->email)->first();
+        $email = $data->email;
 
-        if ($user) {
-            $user->api_token = null;
+        $user = User::where('email', $email)->first();
+        try {
+            if ($user) {
 
-            $password = "aAbBcCdDeEfFgGhHiIjJkKlLmMnNñÑoOpPqQrRsStTuUvVwWxXyYzZ0123456789";
-            $passwordCharCount = strlen($password);
-            $passwordLength = 8;
-            $newPassword = "";
+                $user->api_token = null;
 
-            for ($i = 0; $i < $passwordLength; $i++) {
-                $newPassword .= $password[rand(0, $passwordCharCount - 1)];
+                //Generamos nueva contraseña aleatoria
+                $characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890abcdefghijklmnopqrstuvwxyz";
+                $characterLength = strlen($characters);
+                $newPassword = '';
+                for ($i = 0; $i < 8; $i++) {
+                    $newPassword .= $characters[rand(0, $characterLength - 1)];
+                }
+                $user->password = Hash::make($newPassword);
+                $user->save();
+                Mail::to($user->email)->send(new Notification($newPassword));
+                $response['status'] = 1;
+                $response['msg'] = "Se ha enviado su nueva contraseña. Por favor, revise su correo.";
+            } else {
+                $response['status'] = 2;
+                $response['msg'] = "Usuario no encontrado";
             }
-
-            Mail::to($user->email)->send(new Notification($newPassword));
-            $user->password = Hash::make($newPassword);
-            $user->save();
-            $response['status'] = 1;
-            $response['msg'] = "Nueva contraseña generada. Revisa tu correo";
-        } else {
-            $response['status'] = 2;
-            $response['msg'] = "Usuario no encontrado";
+        } catch (\Exception $e) {
+            $response['status'] = 0;
+            $response['msg'] = "Se ha producido un error: " . $e->getMessage();
         }
 
         return response()->json($response);
@@ -173,7 +177,6 @@ class UsersController extends Controller
             Favorite::where('id', $favorite->id)->delete();
             $response['status'] = 1;
             $response['msg'] = "Masajista eliminado de favoritos";
-
         } else { //Función para crear favorito
 
             try {
@@ -227,20 +230,16 @@ class UsersController extends Controller
 
         try {
             if ($req->has('search')) {
-
                 $services = Service::join('massages', 'massages.id', '=', 'services.massage_id')
                     ->join('therapists', 'therapists.id', '=', 'services.therapist_id')
                     ->where('massages.name', 'like', '%' . $req->input('search') . '%')
                     ->orWhere('therapists.name', 'like', '%' . $req->input('search') . '%')
-                    ->groupBy('therapists.name')
                     ->select('therapists.name')
+                    ->groupBy('therapists.name')
                     ->orderBy('therapists.name', 'ASC')
                     ->get();
                 $response['status'] = 1;
-                $response['services'] = $services;
-            } else if($req->has('search') == "") {
-                $services = Service::get();
-                $response['status'] = 1;
+                $response['msg'] = "Listado de masajistas:";
                 $response['services'] = $services;
             }
         } catch (\Exception $e) {
@@ -250,20 +249,17 @@ class UsersController extends Controller
         return response()->json($response);
     }
 
-    public function listMassages(Request $req) {
-
+    public function listMassages(Request $req) //Ver
+    {
         $response = ["status" => 1, "msg" => ""];
 
         try {
-         
-                $user = DB::table('users')
-                    ->where('position', 'like', 'Empleado')
-                    ->orwhere('position', 'like', 'RRHH')
-                    ->select('name', 'position', 'salary', 'biography')
-                    ->get();
-                $response['status'] = 1;
-                $response['empleados'] = $user;
-            
+            $massages = DB::table('massages')
+                ->select('massages.name')
+                ->get();
+            $response['status'] = 1;
+            $response['msg'] = "Listado de masajes:";
+            $response['massages'] = $massages;
         } catch (\Exception $e) {
             $response['status'] = 0;
             $response['msg'] = "Se ha producido un error: " . $e->getMessage();
@@ -271,20 +267,58 @@ class UsersController extends Controller
         return response()->json($response);
     }
 
-    public function getTherapistInMap(Request $req) //Por completar con localización
+    public function detailMassage(Request $req) //Ver
+    {
+        $response = ["status" => 1, "msg" => ""];
+        $data = $req->getContent();
+        $data = json_decode($data);
+
+        try {
+            $massage = DB::table('massages')
+                ->select('massages.name', 'massages.description', 'massages.image')
+                ->get();
+            $response['status'] = 1;
+            $response['massage'] = $massage;
+
+        } catch (\Exception $e) {
+            $response['status'] = 0;
+            $response['msg'] = "Se ha producido un error: " . $e->getMessage();
+        }
+        return response()->json($response);
+    }
+
+    public function searchTherapistInMap(Request $req) 
     {
         $response = ["status" => 1, "msg" => ""];
 
         try {
             if ($req->has('search')) {
-                $therapists = DB::table('therapists')
-                    ->where('therapists.name', 'like', '%' . $req->input('search') . '%')
-                    ->select('therapists.name', 'therapists.location')
+                $profile = User::where('users.role', '=', 'Masajista')
+                    ->where('users.name', 'like', '%' . $req->input('search') . '%')
+                    ->select('users.name', 'users.lat', 'users.long')
                     ->get();
                 $response["status"] = 1;
                 $response['msg'] = "Masajistas encontrados";
-                $response['therapists'] = $therapists;
+                $response['profile'] = $profile;
             }
+        } catch (\Exception $e) {
+            $response["status"] = 0;
+            $response["msg"] = "Se ha producido un error" . $e->getMessage();
+        }
+        return response()->json($response);
+    }
+
+    public function getTherapistInMap() 
+    {
+        $response = ["status" => 1, "msg" => ""];
+
+        try {
+            $profile = User::where('users.role', '=', 'Masajista')
+                ->select('users.name', 'users.lat', 'users.long')
+                ->get();
+            $response["status"] = 1;
+            $response['msg'] = "Masajistas encontrados";
+            $response['profile'] = $profile;
         } catch (\Exception $e) {
             $response["status"] = 0;
             $response["msg"] = "Se ha producido un error" . $e->getMessage();
@@ -377,12 +411,12 @@ class UsersController extends Controller
                 }
                 if (isset($data->image) && $data->image) {
 
-                    if (Storage::exists($requestedUser->username . '_photo')) {
+                    if (Storage::exists($requestedUser->email . '_photo')) {
                         //BORRAMOS LA IMAGEN EXISTENTE
-                        Storage::delete($requestedUser->username . '_photo');
+                        Storage::delete($requestedUser->email . '_photo');
                     }
-                    Storage::put($requestedUser->username . '_photo', base64_decode($data->image));
-                    $requestedUser->image = $requestedUser->username . '_photo';
+                    Storage::put($requestedUser->email . '_photo', base64_decode($data->image));
+                    $requestedUser->image = $requestedUser->email . '_photo';
                 }
 
 
