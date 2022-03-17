@@ -15,8 +15,8 @@ class CreateServicesTable extends Migration
     {
         Schema::create('services', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('therapist_id');
-            $table->foreign('therapist_id')->references('id')->on('therapists');
+            $table->unsignedBigInteger('user_id');
+            $table->foreign('user_id')->references('id')->on('users');
             $table->unsignedBigInteger('massage_id');
             $table->foreign('massage_id')->references('id')->on('massages');
             $table->timestamps();

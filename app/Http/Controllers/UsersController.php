@@ -233,12 +233,12 @@ class UsersController extends Controller
         try {
             if ($data->search) {
                 $services = Service::join('massages', 'massages.id', '=', 'services.massage_id')
-                    ->join('therapists', 'therapists.id', '=', 'services.therapist_id')
+                    ->join('users', 'users.id', '=', 'services.user_id')
                     ->where('massages.name', 'like', '%' . $req->input('search') . '%')
-                    ->orWhere('therapists.name', 'like', '%' . $req->input('search') . '%')
-                    ->select('therapists.name')
-                    ->groupBy('therapists.name')
-                    ->orderBy('therapists.name', 'ASC')
+                    ->orWhere('users.name', 'like', '%' . $req->input('search') . '%')
+                    ->select('users.name')
+                    ->groupBy('users.name')
+                    ->orderBy('users.name', 'ASC')
                     ->get();
                 $response['status'] = 1;
                 $response['msg'] = "Listado de masajistas:";
@@ -293,9 +293,11 @@ class UsersController extends Controller
     public function searchTherapistInMap(Request $req)
     {
         $response = ["status" => 1, "msg" => ""];
+        $data = $req->getContent();
+        $data = json_decode($data);
 
         try {
-            if ($req->has('search')) {
+            if ($data->search) {
                 $profile = User::where('users.role', '=', 'Masajista')
                     ->where('users.name', 'like', '%' . $req->input('search') . '%')
                     ->select('users.name', 'users.lat', 'users.long')
@@ -476,11 +478,11 @@ class UsersController extends Controller
             if (isset($massageId)  && $massageId) {
 
                     $therapistList = Service::join('massages', 'massages.id', '=', 'services.massage_id')
-                        ->join('therapists', 'therapists.id', '=', 'services.therapist_id')
+                        ->join('users', 'users.id', '=', 'services.user_id')
                         ->where('massages.id', '=', $massageId)
-                        ->select('therapists.name')
+                        ->select('users.name', 'users.description', 'users.image'/*, 'users.rating'*/)
                         //->groupBy('therapists.name')
-                        ->orderBy('therapists.name', 'ASC')
+                        ->orderBy('users.name', 'ASC')
                         ->get();
                     $response['status'] = 1;
                     $response['msg'] = "Listado de masajistas:";

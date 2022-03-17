@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Facades\Storage;
+
 
 class User extends Authenticatable
 {
@@ -22,6 +24,12 @@ class User extends Authenticatable
 
     public function favoriteTherapists(){
         return $this->belongsToMany(Therapist::class,'favorites');
+    }
+
+    public function getImageAttribute($image)
+    {
+        $image64 = base64_encode(Storage::get($image));
+        return $image64;
     }
 
     protected $fillable = [
