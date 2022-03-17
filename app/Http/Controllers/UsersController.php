@@ -430,6 +430,9 @@ class UsersController extends Controller
                 if (isset($data->address)  && $data->address) {
                     $requestedUser->address = $data->address;
                 }
+                if (isset($data->description)  && $data->description) {
+                    $requestedUser->description = $data->description;
+                }
                 if (isset($data->image) && $data->image) {
 
                     if (Storage::exists($requestedUser->email . '_photo')) {
