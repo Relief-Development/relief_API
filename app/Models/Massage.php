@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Massage extends Model
 {
@@ -12,4 +13,19 @@ class Massage extends Model
     protected $fillable = [
         'name',
     ];
+
+    public function getImageAttribute($image)
+    {
+        $image64 = base64_encode(Storage::get($image));
+
+        return $image64;
+    }
+
+    // foreach ($massages as $massage) {
+    //     $image64 = base64_encode(Storage::get($massage->image));
+    //     if ($image64 != "" && Storage::exists($image64)) {
+
+    //          $response['image'] = $image;
+    //     }
+    // }
 }
