@@ -227,9 +227,11 @@ class UsersController extends Controller
     public function search(Request $req)
     {
         $response = ['status' => 1, "msg" => ""];
+        $data = $req->getContent();
+        $data = json_decode($data);
 
         try {
-            if ($req->has('search')) {
+            if ($data->search) {
                 $services = Service::join('massages', 'massages.id', '=', 'services.massage_id')
                     ->join('therapists', 'therapists.id', '=', 'services.therapist_id')
                     ->where('massages.name', 'like', '%' . $req->input('search') . '%')

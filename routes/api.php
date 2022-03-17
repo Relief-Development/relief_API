@@ -20,7 +20,7 @@ Route::prefix('users')->group(function(){
     Route::put('/registerUser',[UsersController::class,'registerUser']);
     Route::put('/registerMassage',[MassagesController::class,'registerMassage']);
     Route::post('/recoverPassword',[UsersController::class,'recoverPassword']);
-    Route::get('/search',[UsersController::class,'search']);
+    Route::post('/search',[UsersController::class,'search']);
     Route::get('/listMassages',[UsersController::class,'listMassages']);
     Route::post('/detailMassage',[UsersController::class,'detailMassage']);
     Route::get('/searchTherapistInMap',[UsersController::class, 'searchTherapistInMap']);
