@@ -3,10 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Massage ;
+use App\Models\Massage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class MassagesController extends Controller
 {
@@ -19,7 +20,7 @@ class MassagesController extends Controller
             json_decode($req->getContent(), true),
             [
                 "name" => ["required", "max:50"],
-                "description" => ["required", "max:180"],
+                "description" => ["required", "max:280"],
                 "image" => ["required"]
             ]
         );
@@ -36,8 +37,15 @@ class MassagesController extends Controller
 
             $massage->name = $data->name;
             $massage->description = $data->description;
-            $massage->image = $data->image;
-            
+
+            if (isset($data->image) && $data->image) {
+
+                Storage::put($data->name . '_photo', base64_decode($data->image));
+                $massage->image = $data->name . '_photo';
+
+                // Storage::put($data->name . '_photo', base64_decode($data->image));
+                // $massage->image = 'http://localhost/relief_API/storage/app/'.$data->name.'_photo';
+            }
 
             try {
                 $massage->save();
@@ -46,10 +54,7 @@ class MassagesController extends Controller
                 $response['status'] = 0;
                 $response['msg'] = "Se ha producido un error: " . $e->getMessage();
             }
-
-           
         }
         return response()->json($response);
     }
-
 }

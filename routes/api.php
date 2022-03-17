@@ -20,9 +20,9 @@ Route::prefix('users')->group(function(){
     Route::put('/registerUser',[UsersController::class,'registerUser']);
     Route::put('/registerMassage',[MassagesController::class,'registerMassage']);
     Route::post('/recoverPassword',[UsersController::class,'recoverPassword']);
-    Route::get('/search',[UsersController::class,'search']);
+    Route::post('/search',[UsersController::class,'search']);
     Route::get('/listMassages',[UsersController::class,'listMassages']);
-    Route::get('/detailMassage',[UsersController::class,'detailMassage']);
+    Route::post('/detailMassage',[UsersController::class,'detailMassage']);
     Route::get('/searchTherapistInMap',[UsersController::class, 'searchTherapistInMap']);
     Route::get('/getTherapistInMap',[UsersController::class, 'getTherapistInMap']);
     Route::post('/getTherapistForMassage',[UsersController::class,'getTherapistForMassage']);

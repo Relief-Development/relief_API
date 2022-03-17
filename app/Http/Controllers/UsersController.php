@@ -227,9 +227,11 @@ class UsersController extends Controller
     public function search(Request $req)
     {
         $response = ['status' => 1, "msg" => ""];
+        $data = $req->getContent();
+        $data = json_decode($data);
 
         try {
-            if ($req->has('search')) {
+            if ($data->search) {
                 $services = Service::join('massages', 'massages.id', '=', 'services.massage_id')
                     ->join('therapists', 'therapists.id', '=', 'services.therapist_id')
                     ->where('massages.name', 'like', '%' . $req->input('search') . '%')
@@ -267,18 +269,19 @@ class UsersController extends Controller
         return response()->json($response);
     }
 
-    public function detailMassage(Request $req) //Ver
+    public function detailMassage(Request $req) 
     {
         $response = ["status" => 1, "msg" => ""];
         $data = $req->getContent();
         $data = json_decode($data);
 
         try {
-            $massage = DB::table('massages')
-                ->select('massages.name', 'massages.description', 'massages.image')
+
+            $massages = Massage::select('massages.id', 'massages.name', 'massages.description', 'massages.image')
                 ->get();
+           
             $response['status'] = 1;
-            $response['massage'] = $massage;
+            $response['massages'] = $massages;
 
         } catch (\Exception $e) {
             $response['status'] = 0;
@@ -287,7 +290,7 @@ class UsersController extends Controller
         return response()->json($response);
     }
 
-    public function searchTherapistInMap(Request $req) 
+    public function searchTherapistInMap(Request $req)
     {
         $response = ["status" => 1, "msg" => ""];
 
@@ -308,7 +311,7 @@ class UsersController extends Controller
         return response()->json($response);
     }
 
-    public function getTherapistInMap() 
+    public function getTherapistInMap()
     {
         $response = ["status" => 1, "msg" => ""];
 
@@ -322,6 +325,26 @@ class UsersController extends Controller
         } catch (\Exception $e) {
             $response["status"] = 0;
             $response["msg"] = "Se ha producido un error" . $e->getMessage();
+        }
+        return response()->json($response);
+    }
+
+    public function seeProfile(Request $req) //VER
+    { 
+
+        $response = ["status" => 1, "msg" => ""];
+        $data = $req->getContent();
+        $data = json_decode($data);
+
+        $profile = User::where('api_token', $data->api_token)->first();
+
+        if ($profile) {
+            $response["status"] = 1;
+            $response['msg'] = "Perfil usuario";
+            $response['profile'] = $profile;
+        } else {
+            $response["status"] = 2;
+            $response["msg"] = "Usuario no encontrado";
         }
         return response()->json($response);
     }
@@ -408,6 +431,9 @@ class UsersController extends Controller
                 }
                 if (isset($data->address)  && $data->address) {
                     $requestedUser->address = $data->address;
+                }
+                if (isset($data->description)  && $data->description) {
+                    $requestedUser->description = $data->description;
                 }
                 if (isset($data->image) && $data->image) {
 
