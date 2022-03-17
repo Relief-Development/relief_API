@@ -435,4 +435,40 @@ class UsersController extends Controller
         $response['msg'] = "Se ha producido un error: " . $e->getMessage();
         return response()->json($response);
     }
+
+    function getTherapistForMassage(Request $req)
+    {
+        $response = ["status" => 1, "msg" => ""];
+
+        $data = $req->getContent();
+        $data = json_decode($data);
+
+        $massageId=$data->id;
+        //$requestedMasssage = Massage::where('id', $massageId)->first();
+
+        try {
+            if (isset($massageId)  && $massageId) {
+
+                    $therapistList = Service::join('massages', 'massages.id', '=', 'services.massage_id')
+                        ->join('therapists', 'therapists.id', '=', 'services.therapist_id')
+                        ->where('massages.id', '=', $massageId)
+                        ->select('therapists.name')
+                        //->groupBy('therapists.name')
+                        ->orderBy('therapists.name', 'ASC')
+                        ->get();
+                    $response['status'] = 1;
+                    $response['msg'] = "Listado de masajistas:";
+                    $response['services'] = $therapistList;
+            }else{
+                $response['status'] = 6;
+                $response['msg'] = "Parametro necesario no recibido";
+            } 
+            } catch (\Exception $e) {
+                $response['status'] = 0;
+                $response['msg'] = "Se ha producido un error: " . $e->getMessage();
+            }
+
+        return response()->json($response);
+    }
+
 }
