@@ -17,7 +17,6 @@ class Massage extends Model
     public function getImageAttribute($image)
     {
         $image64 = base64_encode(Storage::get($image));
-
         return $image64;
     }
 
