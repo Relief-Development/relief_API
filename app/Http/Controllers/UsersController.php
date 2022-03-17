@@ -275,7 +275,7 @@ class UsersController extends Controller
 
         try {
 
-            $massages = Massage::select('massages.name', 'massages.description', 'massages.image')
+            $massages = Massage::select('massages.id', 'massages.name', 'massages.description', 'massages.image')
                 ->get();
            
             $response['status'] = 1;
