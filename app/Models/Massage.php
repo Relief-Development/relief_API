@@ -19,7 +19,13 @@ class Massage extends Model
         $image64 = base64_encode(Storage::get($image));
         return $image64;
     }
-
+    protected $hidden = [
+        'pivot'
+    ];
+    
+    public function users(){
+        return $this -> belongsToMany (User::class,"services"); 
+    }
     // foreach ($massages as $massage) {
     //     $image64 = base64_encode(Storage::get($massage->image));
     //     if ($image64 != "" && Storage::exists($image64)) {

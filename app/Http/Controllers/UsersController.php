@@ -224,7 +224,7 @@ class UsersController extends Controller
         return response()->json($response);
     }
 
-    public function search(Request $req) 
+    public function search(Request $req) //Ordenar por rating
     {
         $response = ['status' => 1, "msg" => ""];
         $data = $req->getContent();
@@ -244,10 +244,10 @@ class UsersController extends Controller
                 $response['status'] = 1;
                 $response['msg'] = "Listado de masajistas:";
                 $response['services'] = $services;
-            }else{
+            } else {
                 $response['status'] = 6;
                 $response['msg'] = "Parámetro necesario no recibido";
-            } 
+            }
         } catch (\Exception $e) {
             $response['status'] = 0;
             $response['msg'] = "Se ha producido un error: " . $e->getMessage();
@@ -273,20 +273,19 @@ class UsersController extends Controller
         return response()->json($response);
     }
 
-    public function detailMassage(Request $req) 
+    public function detailMassage(Request $req)
     {
         $response = ["status" => 1, "msg" => ""];
         $data = $req->getContent();
         $data = json_decode($data);
 
         try {
-            
+
             $massages = Massage::select('massages.id', 'massages.name', 'massages.description', 'massages.image')
                 ->get();
-           
+
             $response['status'] = 1;
             $response['massages'] = $massages;
-
         } catch (\Exception $e) {
             $response['status'] = 0;
             $response['msg'] = "Se ha producido un error: " . $e->getMessage();
@@ -311,11 +310,10 @@ class UsersController extends Controller
                 $response["status"] = 1;
                 $response['msg'] = "Masajistas encontrados";
                 $response['profile'] = $profile;
-            
-            }else{
+            } else {
                 $response['status'] = 6;
                 $response['msg'] = "Parámetro necesario no recibido";
-            } 
+            }
         } catch (\Exception $e) {
             $response["status"] = 0;
             $response["msg"] = "Se ha producido un error" . $e->getMessage();
@@ -342,7 +340,7 @@ class UsersController extends Controller
     }
 
     public function seeProfile(Request $req) //No usada
-    { 
+    {
 
         $response = ["status" => 1, "msg" => ""];
         $data = $req->getContent();
@@ -474,40 +472,69 @@ class UsersController extends Controller
         return response()->json($response);
     }
 
-    function getTherapistForMassage(Request $req) //Ver lo de la imagen y añadir el rating
+    function getTherapistForMassage(Request $req) //añadir el rating
     {
         $response = ["status" => 1, "msg" => ""];
 
         $data = $req->getContent();
         $data = json_decode($data);
 
-        $massageId=$data->id;
-        //$requestedMasssage = Massage::where('id', $massageId)->first();
-
+        $massageId = $data->id;
+       
         try {
             if (isset($massageId)  && $massageId) {
-               
-                    $therapistList = Service::select('users.name', 'users.description', 'users.image'/*, 'users.rating'*/)
-                        ->join('massages', 'massages.id', '=', 'services.massage_id')
-                        ->join('users', 'users.id', '=', 'services.user_id')
-                        ->where('massages.id', '=', $massageId)
-                        //->groupBy('therapists.name')
-                        ->orderBy('users.name', 'ASC')
-                        ->get();
 
-                    $response['status'] = 1;
-                    $response['msg'] = "Listado de masajistas:";
-                    $response['services'] = $therapistList;
-            }else{
+                $therapistList = Massage::find($massageId)->users()
+                     ->select('users.name', 'users.description', 'users.image', 'users.lat', 'users.long')
+                     ->get();
+
+                $response['status'] = 1;
+                $response['msg'] = "Listado de masajistas:";
+                $response['services'] = $therapistList;
+            } else {
                 $response['status'] = 6;
                 $response['msg'] = "Parámetro necesario no recibido";
-            } 
-            } catch (\Exception $e) {
-                $response['status'] = 0;
-                $response['msg'] = "Se ha producido un error: " . $e->getMessage();
             }
+        } catch (\Exception $e) {
+            $response['status'] = 0;
+            $response['msg'] = "Se ha producido un error: " . $e->getMessage();
+        }
 
         return response()->json($response);
     }
 
+    public function addRemoveService(Request $req)
+    {
+        $response = ["status" => 1, "msg" => ""];
+        $data = $req->getContent();
+        $data = json_decode($data);
+
+        $user = User::where('api_token', $data->api_token)->first();
+        $massage = Massage::find($data->massage_id);
+        $service = Service::where('user_id', '=', $user->id)->where('massage_id', '=', $massage->id)->first();
+
+        if ($service) {
+            Service::where('id', $service->id)->delete();
+            $response['status'] = 1;
+            $response['msg'] = "Servicio eliminado";
+
+        } else {
+
+            try {
+
+                $newService = new Service();
+
+                $newService->user_id = $data->user_id;
+                $newService->massage_id = $data->massage_id;
+                $newService->save();
+                $response['status'] = 1;
+                $response['msg'] = "Nuevo servicio añadido";
+
+            } catch (\Exception $e) {
+                $response['status'] = 0;
+                $response['msg'] = "Se ha producido un error: " . $e->getMessage();
+            }
+        }
+        return response()->json($response);
+    }
 }
