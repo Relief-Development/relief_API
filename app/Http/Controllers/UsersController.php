@@ -484,6 +484,10 @@ class UsersController extends Controller
         try {
             if (isset($massageId)  && $massageId) {
 
+                // $therapistList = Massage::find($massageId)->users()
+                // ->select('users.name', 'users.description', 'users.image', 'users.lat', 'users.long')
+                // ->get();
+
                 $therapistList = Massage::find($massageId)->users()
                      ->select('users.name', 'users.description', 'users.image', 'users.lat', 'users.long')
                      ->get();
