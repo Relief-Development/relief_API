@@ -23,9 +23,10 @@ Route::prefix('users')->group(function(){
     Route::post('/search',[UsersController::class,'search']);
     Route::get('/listMassages',[UsersController::class,'listMassages']);
     Route::post('/detailMassage',[UsersController::class,'detailMassage']);
-    Route::get('/searchTherapistInMap',[UsersController::class, 'searchTherapistInMap']);
-    Route::get('/getTherapistInMap',[UsersController::class, 'getTherapistInMap']);
+    Route::post('/searchTherapistInMap',[UsersController::class, 'searchTherapistInMap']);
+    Route::post('/getTherapistInMap',[UsersController::class, 'getTherapistInMap']);
     Route::post('/getTherapistForMassage',[UsersController::class,'getTherapistForMassage']);
+    Route::post('/addRemoveService',[UsersController::class,'addRemoveService']);
 });
 
 Route::middleware('apitoken')->prefix('users')->group(function(){

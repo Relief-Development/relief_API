@@ -52,7 +52,7 @@ class User extends Authenticatable
         'api_token',
         'id',
         'updated_at',
-        'image'
+        'pivot'
     ];
 
     /**
