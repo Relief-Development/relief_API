@@ -23,13 +23,12 @@ class UsersController extends Controller
         $data = $req->getContent();
         $data = json_decode($data);
 
-        $email = $data->email;
-        $user = User::where('email', '=', $email)->first();
+        $user = User::where('email', '=', $data->email)->first();
         $token = $user->api_token;
 
         if ($user) {
             if (Hash::check($data->password, $user->password)) {
-                if (!isset($user->api_token)) {
+                if ($user->api_token != null) {
                     do {
                         $token = Hash::make($user->id . now());
                     } while (User::where('api_token', $token)->first());
@@ -460,28 +459,28 @@ class UsersController extends Controller
                 $validId = [];
 
                 //OPCION DE ENVIAR UN ARRAY CON ID
-                // foreach ($data->services as $addService) {
-                //     if (isset($addService->id)) {
-                //         // $i++;
-                //         $service = Service::where('id', '=', $addService->id)->first();
-                //         if ($service) {
-                //             //$j++;
-                //             array_push($validId, $service->id);
-                //         }
-                //     }
-                // }
-
-                //OPCION DE ENVIAR UN ARRAY CON NUMEROS
                 foreach ($data->services as $addService) {
-
-                    $service = Service::where('id', '=', $addService)->first();
-                    if ($service) {
-                        array_push($validId, $service->id);
+                    if (isset($addService->id)) {
+                        // $i++;
+                        $service = Massage::where('id', '=', $addService->id)->first();
+                        if ($service) {
+                            //$j++;
+                            array_push($validId, $service->id);
+                        }
                     }
                 }
 
+                //OPCION DE ENVIAR UN ARRAY CON NUMEROS
+                // foreach ($data->services as $addService) {
 
-                //print_r ($validId);
+                //     $service = Service::where('id', '=', $addService)->first();
+                //     if ($service) {
+                //         array_push($validId, $service->id);
+                //     }
+                // }
+
+
+                print_r ($validId);
                 if (!empty($validId)) {
 
                     foreach ($validId as $id) {

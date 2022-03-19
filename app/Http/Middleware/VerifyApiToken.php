@@ -21,7 +21,7 @@ class VerifyApiToken
         $data = $req->getContent();
         $data = json_decode($data);
 
-        if (isset($data->api_token)) {
+        if (isset($data->api_token) && $data->api_token) {
             $user = User::where('api_token', $data->api_token)->first();
             if ($user) {
                 $response["msg"] = "Api token válido";
@@ -32,7 +32,7 @@ class VerifyApiToken
             }
         } else {
             $response["status"] = 5;
-            $response["msg"] = "Token no ingresado";
+            $response["msg"] = "Token no ingresado al middle";
         }
 
         return response()->json($response);
