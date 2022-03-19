@@ -488,11 +488,15 @@ class UsersController extends Controller
                 // ->select('users.name', 'users.description', 'users.image', 'users.lat', 'users.long')
                 // ->get();
 
-                $therapistList = Massage::find($massageId)->users()
-                     ->select('users.name', 'users.description', 'users.image', 'users.lat', 'users.long')
-                     ->get();
+                $therapistList = Massage::with('user')
+                    ->leftJoin('ratings', 'user.id', '=', 'users.id')
+                    ->leftJoin('ratings', 'therapist.id', '=', 'users.id')
+                    ->where('massages.id', '=', $massageId)
+                    ->select(DB::raw("AVG('rating')) as media"))
+                    ->groupBy('user.id')
+                    ->get();
 
-                $response['status'] = 1;
+                $response['status'] = 1; 
                 $response['msg'] = "Listado de masajistas:";
                 $response['services'] = $therapistList;
             } else {
@@ -507,7 +511,7 @@ class UsersController extends Controller
         return response()->json($response);
     }
 
-    public function addRemoveService(Request $req)
+    public function addRemoveService(Request $req) //Ver 
     {
         $response = ["status" => 1, "msg" => ""];
         $data = $req->getContent();
