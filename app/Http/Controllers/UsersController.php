@@ -366,8 +366,6 @@ class UsersController extends Controller
         $data = $req->getContent();
         $data = json_decode($data);
 
-        //Buscar el email
-        //$apitoken = $data->api_token;
         $requestedToken = $data->api_token;
         //Validacion
 
@@ -455,20 +453,54 @@ class UsersController extends Controller
                     $requestedUser->image = $requestedUser->email . '_photo';
                 }
 
-
+                //SE GUARDAN LOS DATOS DEL USUARIO
                 $requestedUser->save();
+
+                //SE VALIDARAN LOS SERVICIOS AGRAGADOS Y EN CASO DE EXOSTIR SE AGREGARAN A LA TARBLA SE SERVICES
+                $validId = [];
+
+                //OPCION DE ENVIAR UN ARRAY CON ID
+                // foreach ($data->services as $addService) {
+                //     if (isset($addService->id)) {
+                //         // $i++;
+                //         $service = Service::where('id', '=', $addService->id)->first();
+                //         if ($service) {
+                //             //$j++;
+                //             array_push($validId, $service->id);
+                //         }
+                //     }
+                // }
+
+                //OPCION DE ENVIAR UN ARRAY CON NUMEROS
+                foreach ($data->services as $addService) {
+
+                    $service = Service::where('id', '=', $addService)->first();
+                    if ($service) {
+                        array_push($validId, $service->id);
+                    }
+                }
+
+
+                //print_r ($validId);
+                if (!empty($validId)) {
+
+                    foreach ($validId as $id) {
+                        $service = new Service();
+                        $service->user_id = $requestedUser->id;
+                        $service->massage_id = $id;
+                        $service->save();
+                    }
+                    $respuesta['msg'] = 'Se han agregado los servicios';
+                }
+
                 $response['status'] = 1;
                 $response['msg'] = "Se han actualizado los datos del usuario.";
-
-                return response()->json($response);
             }
-            //$response['msg'] = "Revise los parametros e intente nuevamente";
         } catch (\Exception $e) {
             $response['status'] = 0;
             $response['msg'] = "Se ha producido un error: " . $e->getMessage();
         }
 
-        $response['msg'] = "Se ha producido un error: " . $e->getMessage();
         return response()->json($response);
     }
 
@@ -480,7 +512,7 @@ class UsersController extends Controller
         $data = json_decode($data);
 
         $massageId = $data->id;
-       
+
         try {
             if (isset($massageId)  && $massageId) {
 
@@ -496,7 +528,7 @@ class UsersController extends Controller
                     ->groupBy('user.id')
                     ->get();
 
-                $response['status'] = 1; 
+                $response['status'] = 1;
                 $response['msg'] = "Listado de masajistas:";
                 $response['services'] = $therapistList;
             } else {
@@ -525,7 +557,6 @@ class UsersController extends Controller
             Service::where('id', $service->id)->delete();
             $response['status'] = 1;
             $response['msg'] = "Servicio eliminado";
-
         } else {
 
             try {
@@ -537,7 +568,6 @@ class UsersController extends Controller
                 $newService->save();
                 $response['status'] = 1;
                 $response['msg'] = "Nuevo servicio añadido";
-
             } catch (\Exception $e) {
                 $response['status'] = 0;
                 $response['msg'] = "Se ha producido un error: " . $e->getMessage();
