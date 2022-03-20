@@ -459,38 +459,38 @@ class UsersController extends Controller
                 $validId = [];
 
                 //OPCION DE ENVIAR UN ARRAY CON ID
-                foreach ($data->services as $addService) {
-                    if (isset($addService->id)) {
-                        // $i++;
-                        $service = Massage::where('id', '=', $addService->id)->first();
-                        if ($service) {
-                            //$j++;
-                            array_push($validId, $service->id);
-                        }
-                    }
-                }
-
-                //OPCION DE ENVIAR UN ARRAY CON NUMEROS
                 // foreach ($data->services as $addService) {
-
-                //     $service = Service::where('id', '=', $addService)->first();
-                //     if ($service) {
-                //         array_push($validId, $service->id);
+                //     if (isset($addService->id)) {
+                //         // $i++;
+                //         $service = Massage::where('id', '=', $addService->id)->first();
+                //         if ($service) {
+                //             //$j++;
+                //             array_push($validId, $service->id);
+                //         }
                 //     }
                 // }
 
+                // //OPCION DE ENVIAR UN ARRAY CON NUMEROS
+                // // foreach ($data->services as $addService) {
 
-                print_r ($validId);
-                if (!empty($validId)) {
+                // //     $service = Service::where('id', '=', $addService)->first();
+                // //     if ($service) {
+                // //         array_push($validId, $service->id);
+                // //     }
+                // // }
 
-                    foreach ($validId as $id) {
-                        $service = new Service();
-                        $service->user_id = $requestedUser->id;
-                        $service->massage_id = $id;
-                        $service->save();
-                    }
-                    $respuesta['msg'] = 'Se han agregado los servicios';
-                }
+
+                // print_r ($validId);
+                // if (!empty($validId)) {
+
+                //     foreach ($validId as $id) {
+                //         $service = new Service();
+                //         $service->user_id = $requestedUser->id;
+                //         $service->massage_id = $id;
+                //         $service->save();
+                //     }
+                //     $respuesta['msg'] = 'Se han agregado los servicios';
+                // }
 
                 $response['status'] = 1;
                 $response['msg'] = "Se han actualizado los datos del usuario.";
@@ -520,10 +520,11 @@ class UsersController extends Controller
                 // ->get();
 
                 $therapistList = Massage::with('user')
-                    ->leftJoin('ratings', 'user.id', '=', 'users.id')
-                    ->leftJoin('ratings', 'therapist.id', '=', 'users.id')
-                    ->where('massages.id', '=', $massageId)
-                    ->select(DB::raw("AVG('rating')) as media"))
+                    // ->leftJoin('ratings', 'user.id', '=', 'users.id')
+                    // ->leftJoin('ratings', 'therapist.id', '=', 'users.id')
+                    // ->where('massages.id', '=', $massageId)
+                    // ->select(DB::raw("AVG(rating) AS media"))
+                    //->select(DB::raw("AVG('rating')) as media"))
                     ->groupBy('user.id')
                     ->get();
 

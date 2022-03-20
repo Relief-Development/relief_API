@@ -19,6 +19,7 @@ class Massage extends Model
         $image64 = base64_encode(Storage::get($image));
         return $image64;
     }
+    
     protected $hidden = [
         'pivot'
     ];
