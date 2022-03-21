@@ -99,12 +99,17 @@ class UsersController extends Controller
                 $user->email = $data->email;
                 $user->password = Hash::make($data->password);
                 $user->role = $data->role;
+                //$user->phone_number = $data->phone_number;
 
                 //agregar foto decodificada si la imagen y el tipo son enviados
                 //if (isset($data->image) && $data->image && isset($data->imageType) &&  $data->imageType) {
                 // Storage::put($user->username . '_photo.' . $data->imageType, base64_decode($data->image));
                 // $user->image = $user->username . '_photo.' . $data->imageType;
                 //}
+
+                if (isset($data->phone_number) && $data->phone_number) {
+                    $user->phone_number = $data->phone_number;
+                }
 
                 if (isset($data->image) && $data->image) {
                     Storage::put($user->email . '_photo', base64_decode($data->image));
@@ -359,7 +364,7 @@ class UsersController extends Controller
         return response()->json($response);
     }
 
-    function editProfile(Request $req)
+    function editProfile(Request $req) //Ver lo de los servicios con el estado
     {
         $response = ["status" => 1, "msg" => ""];
 
@@ -563,6 +568,28 @@ class UsersController extends Controller
         $response = ["status" => 1, "msg" => ""];
         $data = $req->getContent();
         $data = json_decode($data);
+
+        $user = User::where('api_token', $data->api_token)->first();
+        
+        try {
+            if ($user) {
+                if (!$user->therapistList->isEmpty()) {
+                    $response["status"] = 1;
+                    $response["msg"] = "Listado de servicios";
+                    $response['favorites'] = $user->favoriteTherapists;
+                } else {
+                    $response["status"] = 7;
+                    $response["msg"] = "No tienes favoritos";
+                }
+            } else {
+                $response["status"] = 2;
+                $response['msg'] = "Usuario no encontrado";
+            }
+        } catch (\Exception $e) {
+            $response["status"] = 0;
+            $response["msg"] = "Se ha producido un error" . $e->getMessage();
+        }
+        return response()->json($response);
 
     }
 }
