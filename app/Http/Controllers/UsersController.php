@@ -29,13 +29,13 @@ class UsersController extends Controller
         if ($user) {
             if (Hash::check($data->password, $user->password)) {
                 //if ($user->api_token != null) {
-                if(!isset($user->api_token)) {   
-                    do {
-                        $token = Hash::make($user->id . now());
-                    } while (User::where('api_token', $token)->first());
-                    $user->api_token = $token;
-                    $user->save();
-                }
+                // if(!isset($user->api_token)) {   
+                do {
+                    $token = Hash::make($user->id . now());
+                } while (User::where('api_token', $token)->first());
+                $user->api_token = $token;
+                $user->save();
+                //}
 
                 // $profile = DB::table('users')
                 //     ->select(['name', 'email', 'username', 'role', 'created_at']) //falta dirección
@@ -239,7 +239,7 @@ class UsersController extends Controller
                     ->where('massages.name', 'like', '%' . $search . '%')
                     ->orWhere('users.name', 'like', '%' . $search . '%')
                     ->select('users.name')
-                    ->orderBy('users.name', 'ASC') //Ordenar por rating
+                    ->orderBy('users.name', 'ASC')
                     ->get();
                 $response['status'] = 1;
                 $response['msg'] = "Listado de masajistas:";
@@ -504,7 +504,7 @@ class UsersController extends Controller
         return response()->json($response);
     }
 
-    function getTherapistForMassage(Request $req) //añadir el rating
+    function getTherapistForMassage(Request $req) 
     {
         $response = ["status" => 1, "msg" => ""];
 
@@ -516,22 +516,36 @@ class UsersController extends Controller
         try {
             if (isset($massageId)  && $massageId) {
 
-                // $therapistList = Massage::find($massageId)->users()
-                // ->select('users.name', 'users.description', 'users.image', 'users.lat', 'users.long')
-                // ->get();
-
-                $therapistList = Massage::with('user')
-                    // ->leftJoin('ratings', 'user.id', '=', 'users.id')
-                    // ->leftJoin('ratings', 'therapist.id', '=', 'users.id')
-                    // ->where('massages.id', '=', $massageId)
-                    // ->select(DB::raw("AVG(rating) AS media"))
-                    //->select(DB::raw("AVG('rating')) as media"))
-                    ->groupBy('user.id')
+                $therapistList = DB::table('users')
+                    ->join('services', 'user_id', '=', 'users.id')
+                    ->join('massages', 'massages.id', '=', 'services.massage_id')
+                    ->leftJoin('ratings', 'therapist_id', '=', 'users.id')
+                    ->where('massages.id', '=', $massageId)
+                    ->select(
+                        DB::raw("AVG(rating) AS media"),
+                        "users.id as id",
+                        "users.name as name",
+                        "users.description as description",
+                        "users.lat as lat",
+                        "users.long as long",
+                        "users.image as image"
+                    )
+                    ->groupBy('users.id', 'users.name', 'users.description', 'users.lat', 'users.long', 'users.image')
+                    ->orderBy('media', 'DESC')
                     ->get();
+
+                foreach ($therapistList as $therapist) {
+                    $image64 = base64_encode(Storage::get($therapist->image));
+                    // if ($image64 != "" && Storage::exists($image64)) {
+                    //     $therapist->image = $image64;
+                    // }
+                    $therapist->image = $image64;
+                }
+                //dd($therapistList);
 
                 $response['status'] = 1;
                 $response['msg'] = "Listado de masajistas:";
-                $response['services'] = $therapistList;
+                $response['list'] = $therapistList;
             } else {
                 $response['status'] = 6;
                 $response['msg'] = "Parámetro necesario no recibido";
@@ -544,36 +558,11 @@ class UsersController extends Controller
         return response()->json($response);
     }
 
-    public function addRemoveService(Request $req) //Ver 
+    public function getServices(Request $req) //Servicios que se ha realizado el usuario
     {
         $response = ["status" => 1, "msg" => ""];
         $data = $req->getContent();
         $data = json_decode($data);
 
-        $user = User::where('api_token', $data->api_token)->first();
-        $massage = Massage::find($data->massage_id);
-        $service = Service::where('user_id', '=', $user->id)->where('massage_id', '=', $massage->id)->first();
-
-        if ($service) {
-            Service::where('id', $service->id)->delete();
-            $response['status'] = 1;
-            $response['msg'] = "Servicio eliminado";
-        } else {
-
-            try {
-
-                $newService = new Service();
-
-                $newService->user_id = $data->user_id;
-                $newService->massage_id = $data->massage_id;
-                $newService->save();
-                $response['status'] = 1;
-                $response['msg'] = "Nuevo servicio añadido";
-            } catch (\Exception $e) {
-                $response['status'] = 0;
-                $response['msg'] = "Se ha producido un error: " . $e->getMessage();
-            }
-        }
-        return response()->json($response);
     }
 }
