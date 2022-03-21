@@ -28,7 +28,8 @@ class UsersController extends Controller
 
         if ($user) {
             if (Hash::check($data->password, $user->password)) {
-                if ($user->api_token != null) {
+                //if ($user->api_token != null) {
+                if(!isset($user->api_token)) {   
                     do {
                         $token = Hash::make($user->id . now());
                     } while (User::where('api_token', $token)->first());
