@@ -476,27 +476,29 @@ class UsersController extends Controller
                 //     }
                 // }
 
-                // //OPCION DE ENVIAR UN ARRAY CON NUMEROS
-                // // foreach ($data->services as $addService) {
+                //OPCION DE ENVIAR UN ARRAY CON NUMEROS
+                foreach ($data->services as $addService) {
+                   // print ($addService);
+                    $service = Massage::where('id', $addService)->first();
+                    //print ($service);
+                    if ($service) {
+                        array_push($validId, $service->id);
+                    }
+                }
 
-                // //     $service = Service::where('id', '=', $addService)->first();
-                // //     if ($service) {
-                // //         array_push($validId, $service->id);
-                // //     }
-                // // }
 
+                //print_r ($validId);
+                if (!empty($validId)) {
+                    Service::where('user_id', $requestedUser->id)->delete();
 
-                // print_r ($validId);
-                // if (!empty($validId)) {
-
-                //     foreach ($validId as $id) {
-                //         $service = new Service();
-                //         $service->user_id = $requestedUser->id;
-                //         $service->massage_id = $id;
-                //         $service->save();
-                //     }
-                //     $respuesta['msg'] = 'Se han agregado los servicios';
-                // }
+                    foreach ($validId as $id) {
+                        $service = new Service();
+                        $service->user_id = $requestedUser->id;
+                        $service->massage_id = $id;
+                        $service->save();
+                    }
+                    $respuesta['msg'] = 'Se han agregado los servicios';
+                }
 
                 $response['status'] = 1;
                 $response['msg'] = "Se han actualizado los datos del usuario.";
@@ -509,7 +511,7 @@ class UsersController extends Controller
         return response()->json($response);
     }
 
-    function getTherapistForMassage(Request $req) 
+    function getTherapistForMassage(Request $req)
     {
         $response = ["status" => 1, "msg" => ""];
 
@@ -533,9 +535,10 @@ class UsersController extends Controller
                         "users.description as description",
                         "users.lat as lat",
                         "users.long as long",
-                        "users.image as image"
+                        "users.image as image",
+                        "users.phone_number as phone_number"
                     )
-                    ->groupBy('users.id', 'users.name', 'users.description', 'users.lat', 'users.long', 'users.image')
+                    ->groupBy('users.id', 'users.name', 'users.description', 'users.lat', 'users.long', 'users.image', 'users.phone_number')
                     ->orderBy('media', 'DESC')
                     ->get();
 
@@ -563,33 +566,29 @@ class UsersController extends Controller
         return response()->json($response);
     }
 
-    public function getServices(Request $req) //Servicios que se ha realizado el usuario
+    //FUNCIÓN PARA BUSCAR LOS SERVICIOS PRESTADOS POR UN MASAJISTA
+    public function getServices(Request $req) 
     {
         $response = ["status" => 1, "msg" => ""];
         $data = $req->getContent();
         $data = json_decode($data);
 
         $user = User::where('api_token', $data->api_token)->first();
-        
+        $therapist = User::with('massages')->where('id', '=', $data->id)->first();
+
         try {
-            if ($user) {
-                if (!$user->therapistList->isEmpty()) {
-                    $response["status"] = 1;
-                    $response["msg"] = "Listado de servicios";
-                    $response['favorites'] = $user->favoriteTherapists;
-                } else {
-                    $response["status"] = 7;
-                    $response["msg"] = "No tienes favoritos";
-                }
+            if ($therapist) {
+                $response["status"] = 1;
+                $response["msg"] = "Listado de servicios";
+                $response['services'] = $therapist->massages;
             } else {
                 $response["status"] = 2;
-                $response['msg'] = "Usuario no encontrado";
+                $response['msg'] = "Masajista no encontrado";
             }
         } catch (\Exception $e) {
             $response["status"] = 0;
             $response["msg"] = "Se ha producido un error" . $e->getMessage();
         }
         return response()->json($response);
-
     }
 }

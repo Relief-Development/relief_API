@@ -21,6 +21,9 @@ class User extends Authenticatable
      */
 
     protected $table = 'users';
+    public function massages(){
+        return $this->belongsToMany(Massage::class,'services');
+    }
 
     public function favoriteTherapists(){
         return $this->belongsToMany(Therapist::class,'favorites');
