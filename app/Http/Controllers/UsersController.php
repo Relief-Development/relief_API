@@ -19,7 +19,7 @@ class UsersController extends Controller
 {
     public function login(Request $req)
     {
-        $response = ["status" => 1, "msg" => "", "token" => "", "profile" => "", "image" => ""];
+        $response = ["status" => 1, "msg" => "", "token" => "", "image" => ""];
         $data = $req->getContent();
         $data = json_decode($data);
 
