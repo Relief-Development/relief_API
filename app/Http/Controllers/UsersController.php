@@ -50,6 +50,9 @@ class UsersController extends Controller
                     $response['image'] = $image;
                 }
 
+                if ($profile){
+                    $response['profile'] = $profile;
+                }
                 //agregar foto decodificada si la imagen y el tipo son enviados
                 //if (isset($data->image) && $data->image && isset($data->imageType) &&  $data->imageType) {
                 // Storage::put($user->username . '_photo.' . $data->imageType, base64_decode($data->image));
@@ -58,8 +61,7 @@ class UsersController extends Controller
                 $response['status'] = 1;
                 $response['msg'] = "Login correcto.";
                 $response['token'] =  $user->api_token;
-                $response['profile'] = $profile;
-
+              
                 //$response['type'] = $type;
             } else {
                 $response['status'] = 3;
