@@ -580,7 +580,7 @@ class UsersController extends Controller
             if ($therapist) {
                 $response["status"] = 1;
                 $response["msg"] = "Listado de servicios";
-                $response['services'] = $therapist->massages;
+                $response['list'] = $therapist->massages;
             } else {
                 $response["status"] = 2;
                 $response['msg'] = "Masajista no encontrado";
