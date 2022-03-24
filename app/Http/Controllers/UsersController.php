@@ -176,7 +176,7 @@ class UsersController extends Controller
         $data = json_decode($data);
 
         $user = User::where('api_token', $data->api_token)->first();
-        $therapist = Therapist::find($data->therapist_id);
+        $therapist = User::find($data->therapist_id);
         $favorite = Favorite::where('user_id', '=', $user->id)->where('therapist_id', '=', $therapist->id)->first();
 
         if ($favorite) { //Función para eliminar favorito
