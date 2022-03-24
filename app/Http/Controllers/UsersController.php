@@ -189,7 +189,7 @@ class UsersController extends Controller
             try {
                 $newFavorite = new Favorite();
 
-                $newFavorite->user_id = $data->user->id;
+                $newFavorite->user_id = $user->id;
                 $newFavorite->therapist_id = $data->therapist_id;
                 $newFavorite->save();
                 $response['status'] = 1;
