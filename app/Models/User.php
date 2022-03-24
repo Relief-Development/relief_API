@@ -53,7 +53,6 @@ class User extends Authenticatable
         'remember_token',
         'email_verified_at',
         'api_token',
-        'id',
         'updated_at',
         'pivot'
     ];
