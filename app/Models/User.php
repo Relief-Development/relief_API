@@ -26,7 +26,7 @@ class User extends Authenticatable
     }
 
     public function favoriteTherapists(){
-        return $this->belongsToMany(Therapist::class,'favorites');
+        return $this->belongsToMany(User::class,'favorites');
     }
 
     public function getImageAttribute($image)
