@@ -209,26 +209,41 @@ class UsersController extends Controller
         $data = json_decode($data);
 
         $user = User::where('api_token', $data->api_token)->first();
-
+        $therapist = User::with('favorites')->where('therapist_id', '=', $data->id)->first();
+        
         try {
-            if ($user) {
-                if (!$user->favoriteTherapists->isEmpty()) {
-                    $response["status"] = 1;
-                    $response["msg"] = "Listado de favoritos";
-                    $response['favorites'] = $user->favoriteTherapists;
-                } else {
-                    $response["status"] = 7;
-                    $response["msg"] = "No tienes favoritos";
-                }
+            if ($therapist) {
+                $response["status"] = 1;
+                $response["msg"] = "Listado de favoritos";
+                $response['list'] = $therapist->favorites;
             } else {
                 $response["status"] = 2;
-                $response['msg'] = "Usuario no encontrado";
+                $response['msg'] = "Masajista no encontrado";
             }
         } catch (\Exception $e) {
             $response["status"] = 0;
             $response["msg"] = "Se ha producido un error" . $e->getMessage();
         }
         return response()->json($response);
+        // try {
+        //     if ($user) {
+        //         if (!$user->favoriteTherapists->isEmpty()) {
+        //             $response["status"] = 1;
+        //             $response["msg"] = "Listado de favoritos";
+        //             $response['favorites'] = $user->favoriteTherapists;
+        //         } else {
+        //             $response["status"] = 7;
+        //             $response["msg"] = "No tienes favoritos";
+        //         }
+        //     } else {
+        //         $response["status"] = 2;
+        //         $response['msg'] = "Usuario no encontrado";
+        //     }
+        // } catch (\Exception $e) {
+        //     $response["status"] = 0;
+        //     $response["msg"] = "Se ha producido un error" . $e->getMessage();
+        // }
+        // return response()->json($response);
     }
 
     public function search(Request $req) //Ordenar por rating
@@ -531,14 +546,14 @@ class UsersController extends Controller
                     ->leftJoin('ratings', 'therapist_id', '=', 'users.id')
                     ->where('massages.id', '=', $massageId)
                     ->select(
-                        DB::raw("AVG(rating) AS media"),
+                        DB::raw("AVG(`rating`) AS media"),
                         "users.id as id",
                         "users.name as name",
                         "users.description as description",
                         "users.lat as lat",
                         "users.long as long",
                         "users.image as image",
-                        "users.phone_number as phone_number"
+                        "users.phone_number as phone_number",
                     )
                     ->groupBy('users.id', 'users.name', 'users.description', 'users.lat', 'users.long', 'users.image', 'users.phone_number')
                     ->orderBy('media', 'DESC')
@@ -591,6 +606,63 @@ class UsersController extends Controller
             $response["status"] = 0;
             $response["msg"] = "Se ha producido un error" . $e->getMessage();
         }
+        return response()->json($response);
+    }
+
+    function getRecommendedTherapists(Request $req)
+    {
+        $response = ["status" => 1, "msg" => ""];
+
+        $data = $req->getContent();
+        $data = json_decode($data);
+
+        $user = User::where('api_token', $data->api_token)->first();
+
+        //$massageId = $data->id;
+
+        try {
+            //if (isset($massageId)  && $massageId) {
+
+                $therapistList = DB::table('users')
+                    ->join('services', 'user_id', '=', 'users.id')
+                    ->join('massages', 'massages.id', '=', 'services.massage_id')
+                    ->leftJoin('ratings', 'therapist_id', '=', 'users.id')
+                    //->where('massages.id', '=', $massageId)
+                    ->select(
+                        DB::raw("AVG(rating) AS media"),
+                        "users.id as id",
+                        "users.name as name",
+                        "users.description as description",
+                        "users.lat as lat",
+                        "users.long as long",
+                        "users.image as image",
+                        "users.phone_number as phone_number"
+                    )
+                    ->groupBy('users.id', 'users.name', 'users.description', 'users.lat', 'users.long', 'users.image', 'users.phone_number')
+                    ->orderBy('media', 'DESC')->limit(5)
+                    ->get();
+
+                foreach ($therapistList as $therapist) {
+                    $image64 = base64_encode(Storage::get($therapist->image));
+                    // if ($image64 != "" && Storage::exists($image64)) {
+                    //     $therapist->image = $image64;
+                    // }
+                    $therapist->image = $image64;
+                }
+                //dd($therapistList);
+
+                $response['status'] = 1;
+                $response['msg'] = "Listado de masajistas:";
+                $response['list'] = $therapistList;
+            // } else {
+            //     $response['status'] = 6;
+            //     $response['msg'] = "Parámetro necesario no recibido";
+            // }
+        } catch (\Exception $e) {
+            $response['status'] = 0;
+            $response['msg'] = "Se ha producido un error: " . $e->getMessage();
+        }
+
         return response()->json($response);
     }
 }
