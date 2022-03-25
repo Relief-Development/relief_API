@@ -21,9 +21,12 @@ class User extends Authenticatable
      */
 
     protected $table = 'users';
+    public function massages(){
+        return $this->belongsToMany(Massage::class,'services');
+    }
 
     public function favoriteTherapists(){
-        return $this->belongsToMany(Therapist::class,'favorites');
+        return $this->belongsToMany(User::class,'favorites');
     }
 
     public function getImageAttribute($image)
@@ -50,7 +53,6 @@ class User extends Authenticatable
         'remember_token',
         'email_verified_at',
         'api_token',
-        'id',
         'updated_at',
         'pivot'
     ];

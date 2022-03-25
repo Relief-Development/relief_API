@@ -31,8 +31,10 @@ Route::prefix('users')->group(function(){
 
 Route::middleware('apitoken')->prefix('users')->group(function(){
     Route::post('/addRemoveFavorites',[UsersController::class, 'addRemoveFavorites']);  
-    Route::get('/getFavorites',[UsersController::class, 'getFavorites']);
+    Route::post('/getFavorites',[UsersController::class, 'getFavorites']);
     Route::post('/editProfile',[UsersController::class,'editProfile']);    
+    Route::post('/getServices',[UsersController::class,'getServices']);
+    Route::post('/getRecommendedTherapists',[UsersController::class,'getRecommendedTherapists']);
 });
 
 Route::post('/login',[UsersController::class, 'login']);
