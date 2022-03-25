@@ -237,13 +237,13 @@ class UsersController extends Controller
                 $favorite->image = $image64;
             }
 
-            if ($favorites->isEmpty()) {
-                $response["status"] = 7;
-                $response["msg"] = "No tienes favoritos";
-            } else {
+            if (!$favorites->isEmpty()) {
                 $response["status"] = 1;
                 $response["msg"] = "Listado de favoritos";
                 $response['homeList'] = $favorites;
+            } else {
+                $response["status"] = 7;
+                $response["msg"] = "No tienes favoritos";
             }
         } catch (\Exception $e) {
             $response["status"] = 0;
@@ -271,7 +271,7 @@ class UsersController extends Controller
         // return response()->json($response);
     }
 
-    public function search(Request $req) //Ordenar por rating
+    public function search(Request $req)
     {
         $response = ['status' => 1, "msg" => ""];
         $data = $req->getContent();
@@ -312,7 +312,6 @@ class UsersController extends Controller
                 $response['status'] = 1;
                 $response['msg'] = "Listado de masajistas:";
                 $response['services'] = $services;
-
             } else {
                 $response['status'] = 6;
                 $response['msg'] = "Parámetro necesario no recibido";
@@ -362,7 +361,7 @@ class UsersController extends Controller
         return response()->json($response);
     }
 
-    public function searchTherapistInMap(Request $req)
+    public function searchTherapistInMap(Request $req) //No usada
     {
         $response = ["status" => 1, "msg" => ""];
         $data = $req->getContent();
@@ -711,5 +710,10 @@ class UsersController extends Controller
         }
 
         return response()->json($response);
+    }
+
+    function addAppointments(Request $req)
+    {
+
     }
 }
