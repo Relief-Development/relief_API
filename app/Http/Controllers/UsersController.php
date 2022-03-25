@@ -237,14 +237,14 @@ class UsersController extends Controller
                 $favorite->image = $image64;
             }
 
-            // if ($favorites->isEmpty()) {
-            //     $response["status"] = 7;
-            //     $response["msg"] = "No tienes favoritos";
-            // } else {
+            if ($favorites->isEmpty()) {
+                $response["status"] = 7;
+                $response["msg"] = "No tienes favoritos";
+            } else {
                 $response["status"] = 1;
                 $response["msg"] = "Listado de favoritos";
                 $response['homeList'] = $favorites;
-            //}
+            }
         } catch (\Exception $e) {
             $response["status"] = 0;
             $response["msg"] = "Se ha producido un error" . $e->getMessage();
@@ -283,14 +283,36 @@ class UsersController extends Controller
             if (isset($search) && $search) {
                 $services = Service::join('massages', 'massages.id', '=', 'services.massage_id')
                     ->join('users', 'users.id', '=', 'services.user_id')
+                    ->leftJoin('ratings', 'therapist_id', '=', 'users.id')
                     ->where('massages.name', 'like', '%' . $search . '%')
                     ->orWhere('users.name', 'like', '%' . $search . '%')
-                    ->select('users.name')
-                    ->orderBy('users.name', 'ASC')
+                    //->select('users.name')
+                    ->select(
+                        DB::raw("AVG(`rating`) AS media"),
+                        "users.id as id",
+                        "users.name as name",
+                        "users.description as description",
+                        "users.lat as lat",
+                        "users.long as long",
+                        "users.image as image",
+                        "users.phone_number as phone_number",
+                    )
+                    ->groupBy('users.id', 'users.name', 'users.description', 'users.lat', 'users.long', 'users.image', 'users.phone_number')
+                    ->orderBy('media', 'DESC')
                     ->get();
+
+                // foreach ($services as $service) {
+                //     $image64 = base64_encode(Storage::get($service->image));
+                //     // if ($image64 != "" && Storage::exists($image64)) {
+                //     //     $therapist->image = $image64;
+                //     // }
+                //     $service->image = $image64;
+                //}
+
                 $response['status'] = 1;
                 $response['msg'] = "Listado de masajistas:";
                 $response['services'] = $services;
+
             } else {
                 $response['status'] = 6;
                 $response['msg'] = "Parámetro necesario no recibido";
