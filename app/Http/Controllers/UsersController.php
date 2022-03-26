@@ -786,7 +786,7 @@ class UsersController extends Controller
                 ->get();
             $response["status"] = 1;
             $response["msg"] = "Citas";
-            $response['list'] = $appointments;
+            $response['appointments'] = $appointments;
         } catch (\Exception $e) {
             $response["status"] = 0;
             $response["msg"] = "Se ha producido un error" . $e->getMessage();
