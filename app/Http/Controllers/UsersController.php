@@ -26,9 +26,10 @@ class UsersController extends Controller
         $data = json_decode($data);
 
         $user = User::where('email', '=', $data->email)->first();
-        $token = $user->api_token;
-
+        
         if ($user) {
+
+            $token = $user->api_token;
             if (Hash::check($data->password, $user->password)) {
                 //if ($user->api_token != null) {
                 // if(!isset($user->api_token)) {   
