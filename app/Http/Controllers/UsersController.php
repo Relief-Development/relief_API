@@ -512,6 +512,10 @@ class UsersController extends Controller
                 if (isset($data->description)  && $data->description) {
                     $requestedUser->description = $data->description;
                 }
+                if (isset($data->phone_number)  && $data->phone_number) {
+                    $requestedUser->phone_number = $data->phone_number;
+                }
+
                 if (isset($data->image) && $data->image) {
 
                     if (Storage::exists($requestedUser->email . '_photo')) {
@@ -729,18 +733,22 @@ class UsersController extends Controller
         if ($validator->fails()) {
             $response['status'] = 0;
             $response['msg'] = "Los datos no pasaron el validador";
-            
         } else {
             //Generar la cita
             $data = $req->getContent();
             $data = json_decode($data);
-            $appointment = new Appointment();
 
-            $appointment->description = $data->description;
-            $appointment->date = $data->date;
-            $appointment->time = $data->time;
+            $user = User::where('api_token', $data->api_token)->first();
 
             try {
+
+                $appointment = new Appointment();
+
+                $appointment->user_id = $user->id;
+                $appointment->description = $data->description;
+                $appointment->date = $data->date;
+                $appointment->time = $data->time;
+
                 $appointment->save();
                 $response['status'] = 1;
                 $response['msg'] = "Cita guardada";
@@ -748,6 +756,35 @@ class UsersController extends Controller
                 $response['status'] = 0;
                 $response['msg'] = "Se ha producido un error: " . $e->getMessage();
             }
+        }
+        return response()->json($response);
+    }
+
+    function getAppointments(Request $req)
+    {
+        $response = ["status" => 1, "msg" => ""];
+        $data = $req->getContent();
+        $data = json_decode($data);
+
+        $user = User::where('api_token', $data->api_token)->first();
+
+        try {
+            $appointments = DB::table('appointments')
+                ->select('description', 'date', 'time')
+                ->where('user_id', $user->id)
+                //->where('date', '>=' ())
+                ->whereRaw('Date(date) >= CURDATE()')
+                ->whereRaw('Time(time) >= CURTIME()')
+                ->orderBy('date', 'ASC')
+                ->orderBy('time', 'ASC')
+                ->get();
+            $response["status"] = 1;
+            $response["msg"] = "Citas";
+            $response['list'] = $appointments;
+
+        } catch (\Exception $e) {
+            $response["status"] = 0;
+            $response["msg"] = "Se ha producido un error" . $e->getMessage();
         }
         return response()->json($response);
     }

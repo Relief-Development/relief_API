@@ -27,8 +27,6 @@ Route::prefix('users')->group(function(){
     Route::post('/getTherapistInMap',[UsersController::class, 'getTherapistInMap']);
     Route::post('/getTherapistForMassage',[UsersController::class,'getTherapistForMassage']);
     Route::post('/addRemoveService',[UsersController::class,'addRemoveService']);
-    Route::put('/registerAppointments',[UsersController::class,'registerAppointments']);
-    
 });
 
 Route::middleware('apitoken')->prefix('users')->group(function(){
@@ -37,7 +35,8 @@ Route::middleware('apitoken')->prefix('users')->group(function(){
     Route::post('/editProfile',[UsersController::class,'editProfile']);    
     Route::post('/getServices',[UsersController::class,'getServices']);
     Route::post('/getRecommendedTherapists',[UsersController::class,'getRecommendedTherapists']);
-  
+    Route::put('/registerAppointments',[UsersController::class,'registerAppointments']);
+    Route::post('/getAppointments',[UsersController::class,'getAppointments']);
 });
 
 Route::post('/login',[UsersController::class, 'login']);
