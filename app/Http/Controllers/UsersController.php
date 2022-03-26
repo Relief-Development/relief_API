@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 use App\Mail\Notification;
+use App\Models\Appointment;
 use App\Models\User;
 use App\Models\Favorite;
 use App\Models\Massage;
@@ -712,8 +713,42 @@ class UsersController extends Controller
         return response()->json($response);
     }
 
-    function addAppointments(Request $req)
+    function registerAppointments(Request $req)
     {
+        $response = ['status' => 1, 'msg' => ''];
 
+        $validator = Validator::make(
+            json_decode($req->getContent(), true),
+            [
+                "description" => ["required", "max:280"],
+                "date" => ["required"],
+                "time" => ["required"]
+            ]
+        );
+
+        if ($validator->fails()) {
+            $response['status'] = 0;
+            $response['msg'] = "Los datos no pasaron el validador";
+            
+        } else {
+            //Generar la cita
+            $data = $req->getContent();
+            $data = json_decode($data);
+            $appointment = new Appointment();
+
+            $appointment->description = $data->description;
+            $appointment->date = $data->date;
+            $appointment->time = $data->time;
+
+            try {
+                $appointment->save();
+                $response['status'] = 1;
+                $response['msg'] = "Cita guardada";
+            } catch (\Exception $e) {
+                $response['status'] = 0;
+                $response['msg'] = "Se ha producido un error: " . $e->getMessage();
+            }
+        }
+        return response()->json($response);
     }
 }

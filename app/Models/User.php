@@ -29,6 +29,11 @@ class User extends Authenticatable
         return $this->belongsToMany(User::class,'favorites');
     }
 
+    public function appointments(){
+        return $this->belongsToMany(User::class,'appointments');
+    }
+
+
     public function getImageAttribute($image)
     {
         $image64 = base64_encode(Storage::get($image));
