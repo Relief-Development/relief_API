@@ -646,9 +646,15 @@ class UsersController extends Controller
 
         try {
             if ($therapist) {
-                $response["status"] = 1;
-                $response["msg"] = "Listado de servicios";
-                $response['list'] = $therapist->massages;
+                if (!$therapist->massages->isEmpty()) {
+                    $response["status"] = 1;
+                    $response["msg"] = "Listado de servicios";
+                    $response['list'] = $therapist->massages;
+                } else {
+                    $response["status"] = 7;
+                    $response["msg"] = "No tienes servicios";
+                }
+                
             } else {
                 $response["status"] = 2;
                 $response['msg'] = "Masajista no encontrado";
@@ -788,4 +794,6 @@ class UsersController extends Controller
         }
         return response()->json($response);
     }
+
+
 }
