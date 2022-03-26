@@ -37,6 +37,7 @@ Route::middleware('apitoken')->prefix('users')->group(function(){
     Route::post('/getRecommendedTherapists',[UsersController::class,'getRecommendedTherapists']);
     Route::put('/registerAppointments',[UsersController::class,'registerAppointments']);
     Route::post('/getAppointments',[UsersController::class,'getAppointments']);
+    Route::post('/addRating',[UsersController::class,'addRating']);
 });
 
 Route::post('/login',[UsersController::class, 'login']);

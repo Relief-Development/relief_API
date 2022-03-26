@@ -12,6 +12,7 @@ use App\Models\Appointment;
 use App\Models\User;
 use App\Models\Favorite;
 use App\Models\Massage;
+use App\Models\Rating;
 use App\Models\Therapist;
 use App\Models\Service;
 use Illuminate\Support\Facades\Storage;
@@ -654,7 +655,6 @@ class UsersController extends Controller
                     $response["status"] = 7;
                     $response["msg"] = "No tienes servicios";
                 }
-                
             } else {
                 $response["status"] = 2;
                 $response['msg'] = "Masajista no encontrado";
@@ -787,7 +787,6 @@ class UsersController extends Controller
             $response["status"] = 1;
             $response["msg"] = "Citas";
             $response['list'] = $appointments;
-
         } catch (\Exception $e) {
             $response["status"] = 0;
             $response["msg"] = "Se ha producido un error" . $e->getMessage();
@@ -795,5 +794,43 @@ class UsersController extends Controller
         return response()->json($response);
     }
 
+    function addRating(Request $req)
+    {
+        $response = ["status" => 1, "msg" => ""];
+        $data = $req->getContent();
+        $data = json_decode($data);
 
+        $user = User::where('api_token', $data->api_token)->first();
+        $newRating = Rating::where('user_id', $user->id)->where('therapist_id', $data->therapist_id)->first();
+
+        try {
+            if ($newRating) { 
+
+                $newRating->rating = $data->rating;
+                $newRating->save();
+
+                $response['status'] = 1;
+                $response['msg'] = "Rating actualizado";
+            } else { 
+            
+                $newRating = new Rating();
+
+                $newRating->user_id = $user->id;
+                $newRating->therapist_id = $data->therapist_id;
+                $newRating->rating = $data->rating;
+
+                $newRating->save();
+                $response['status'] = 1;
+                $response['msg'] = "Nuevo rating añadido";
+                
+            } 
+
+        } catch (\Exception $e) {
+            $response['status'] = 0;
+            $response['msg'] = "Se ha producido un error: " . $e->getMessage();
+        }
+
+        return response()->json($response);
+
+    }
 }
