@@ -780,13 +780,19 @@ class UsersController extends Controller
                 ->where('user_id', $user->id)
                 //->where('date', '>=' ())
                 ->whereRaw('Date(date) >= CURDATE()')
-                ->whereRaw('Time(time) >= CURTIME()')
+                //->whereRaw('Time(time) >= CURTIME()')
                 ->orderBy('date', 'ASC')
                 ->orderBy('time', 'ASC')
                 ->get();
-            $response["status"] = 1;
-            $response["msg"] = "Citas";
-            $response['appointments'] = $appointments;
+          
+            if (!$appointments->isEmpty()) {
+                $response["status"] = 1;
+                $response["msg"] = "Citas";
+                $response['appointments'] = $appointments;
+            } else {
+                $response["status"] = 7;
+                $response["msg"] = "No tienes citas";
+            }
         } catch (\Exception $e) {
             $response["status"] = 0;
             $response["msg"] = "Se ha producido un error" . $e->getMessage();
